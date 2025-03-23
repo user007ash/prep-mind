@@ -6,6 +6,11 @@
 // Function to convert speech to text and analyze sentiment
 const convertSpeechToText = async (audioBlob) => {
   try {
+    // Check if audio blob has sufficient data
+    if (!audioBlob || audioBlob.size < 1000) {
+      throw new Error("Not enough audio data. Please try speaking again.");
+    }
+    
     // In a real implementation, this would call Groq Cloud's API endpoint
     // For this demo, we'll simulate the response
     return simulateSpeechToText(audioBlob);
@@ -17,8 +22,28 @@ const convertSpeechToText = async (audioBlob) => {
 
 // Mock function to simulate speech to text conversion with sentiment analysis
 const simulateSpeechToText = async (audioBlob) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
+      // Randomly determine if we should simulate a "too short" response for testing
+      const simulateShortResponse = Math.random() < 0.1; // 10% chance
+      
+      if (simulateShortResponse) {
+        resolve({
+          text: "Um, I don't know.",
+          sentiment: {
+            confidence: 0.40,
+            emotion: "uncertain",
+            engagement: 0.30,
+            clarity: 0.25,
+            hesitationRatio: 0.50,
+            fillerWordCount: 2,
+            speakingRate: "very slow",
+            toneAnalysis: "extremely hesitant and uncertain"
+          }
+        });
+        return;
+      }
+      
       // Example mock responses with more detailed sentiment analysis
       const mockResponses = [
         {
@@ -103,7 +128,14 @@ const simulateSpeechToText = async (audioBlob) => {
       
       // Return a random mock response
       const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-      resolve(randomResponse);
+      
+      // Validate that the response text meets minimum requirements
+      const words = randomResponse.text.split(/\s+/).filter(word => word.length > 0);
+      if (words.length < 5) {
+        reject(new Error("Your answer is too short. Please elaborate more on your response."));
+      } else {
+        resolve(randomResponse);
+      }
     }, 1500);
   });
 };

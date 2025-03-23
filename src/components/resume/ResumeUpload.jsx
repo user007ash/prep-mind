@@ -3,10 +3,12 @@ import React, { useState, useRef } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
 import Button from '../ui/Button';
 import { parseResume } from '../../utils/resumeParser';
+import { toast } from 'sonner';
 
 const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState('');
   const inputRef = useRef(null);
 
   const handleDrag = (e) => {
@@ -36,12 +38,15 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
   };
 
   const handleFile = (file) => {
+    setError('');
     if (file.type === 'application/pdf' || 
         file.type === 'application/msword' || 
         file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       setFile(file);
     } else {
-      alert("Please upload a PDF or Word document");
+      setFile(null);
+      setError('Please upload a PDF or Word document');
+      toast.error('Please upload a PDF or Word document');
     }
   };
 
@@ -50,11 +55,13 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
     
     try {
       setLoading(true);
+      setError('');
       const parsedData = await parseResume(file);
       onResumeProcessed(parsedData);
     } catch (error) {
       console.error("Error processing resume:", error);
-      alert("Failed to process resume. Please try again.");
+      setError(error.message || "Failed to process resume. Please try again.");
+      toast.error(error.message || "Failed to process resume. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +82,9 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
               ? "border-primary bg-primary/5" 
               : file 
                 ? "border-green-500 bg-green-50" 
-                : "border-gray-300 hover:border-primary/50"
+                : error
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300 hover:border-primary/50"
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -124,6 +133,12 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
               <p className="text-xs text-muted-foreground mt-2">
                 Supports PDF, DOC, DOCX
               </p>
+            </div>
+          )}
+          
+          {error && (
+            <div className="mt-4 text-sm text-red-500">
+              {error}
             </div>
           )}
         </div>

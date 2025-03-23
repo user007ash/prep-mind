@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { convertSpeechToText } from '../../utils/speechToText';
 import Progress from '../ui/Progress';
+import { toast } from 'sonner';
 
 const VoiceRecorder = ({ onRecordingComplete }) => {
   const [isRecording, setIsRecording] = useState(true);
@@ -11,11 +11,16 @@ const VoiceRecorder = ({ onRecordingComplete }) => {
   const [audioChunks, setAudioChunks] = useState([]);
   const [audioLevel, setAudioLevel] = useState(0);
   const [processingStatus, setProcessingStatus] = useState('');
+  const [silenceDetected, setSilenceDetected] = useState(false);
+  const [speechDetected, setSpeechDetected] = useState(false);
   
   const maxRecordingTime = 120; // Maximum recording time in seconds
+  const silenceThreshold = 5; // Seconds without speech to trigger warning
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const streamRef = useRef(null);
+  const silenceTimerRef = useRef(null);
+  const silenceCountRef = useRef(0);
 
   useEffect(() => {
     let interval;
@@ -34,6 +39,35 @@ const VoiceRecorder = ({ onRecordingComplete }) => {
 
     return () => clearInterval(interval);
   }, [isRecording]);
+
+  useEffect(() => {
+    if (isRecording) {
+      // Reset silence timer when recording starts
+      silenceTimerRef.current = setInterval(() => {
+        // If audio level is very low for a period (likely silence)
+        if (audioLevel < 10) {
+          silenceCountRef.current += 1;
+          
+          // If silence for 5 seconds and speech was detected before
+          if (silenceCountRef.current >= silenceThreshold && speechDetected) {
+            setSilenceDetected(true);
+            toast.warning("No voice detected. Please continue speaking.");
+          }
+        } else {
+          // Reset silence counter when audio is detected
+          silenceCountRef.current = 0;
+          setSilenceDetected(false);
+          setSpeechDetected(true);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (silenceTimerRef.current) {
+        clearInterval(silenceTimerRef.current);
+      }
+    };
+  }, [isRecording, audioLevel, speechDetected]);
 
   useEffect(() => {
     let recorder;
@@ -64,14 +98,29 @@ const VoiceRecorder = ({ onRecordingComplete }) => {
             setTranscript(text);
             setProcessingStatus('Analyzing response sentiment...');
             
-            // Short delay to allow user to see the processing status
-            setTimeout(() => {
-              onRecordingComplete(text, sentiment);
+            // Validate answer length
+            if (validateAnswerLength(text)) {
+              // Short delay to allow user to see the processing status
+              setTimeout(() => {
+                onRecordingComplete(text, sentiment);
+                setProcessingStatus('');
+              }, 1000);
+            } else {
+              // Answer is too short, prompt user to try again
+              toast.error("Your answer seems too short. Please elaborate and try again.");
               setProcessingStatus('');
-            }, 1000);
+              // Reset for re-recording
+              setIsRecording(true);
+              chunks = [];
+              setAudioChunks([]);
+              setTranscript('');
+              startRecording();
+              return;
+            }
           } catch (error) {
             console.error("Error converting speech to text:", error);
             setProcessingStatus('Error processing response. Please try again.');
+            toast.error("Failed to process your answer. Please try again.");
           }
           
           // Clean up the stream tracks
@@ -90,6 +139,7 @@ const VoiceRecorder = ({ onRecordingComplete }) => {
       } catch (error) {
         console.error("Error accessing microphone:", error);
         setProcessingStatus('Error accessing microphone. Please check your permissions.');
+        toast.error("Could not access your microphone. Please check your permissions.");
       }
     };
 
@@ -107,8 +157,20 @@ const VoiceRecorder = ({ onRecordingComplete }) => {
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
+
+      if (silenceTimerRef.current) {
+        clearInterval(silenceTimerRef.current);
+      }
     };
   }, [onRecordingComplete]);
+
+  const validateAnswerLength = (text) => {
+    if (!text) return false;
+    
+    // Count words by splitting on whitespace
+    const words = text.trim().split(/\s+/);
+    return words.length >= 5; // Minimum 5 words
+  };
 
   const setupAudioVisualization = (stream) => {
     try {
@@ -163,7 +225,6 @@ const VoiceRecorder = ({ onRecordingComplete }) => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   
-  // Calculate progress percentage
   const progressPercentage = (recordingTime / maxRecordingTime) * 100;
 
   return (
@@ -219,6 +280,11 @@ const VoiceRecorder = ({ onRecordingComplete }) => {
             <p className="text-sm text-muted-foreground">
               Speak clearly into your microphone. Answer the question thoroughly and confidently.
             </p>
+            {silenceDetected && (
+              <p className="text-amber-500 text-sm mt-2 animate-pulse">
+                No voice detected. Please continue speaking.
+              </p>
+            )}
           </div>
           
           <button
