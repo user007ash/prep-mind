@@ -30,3 +30,34 @@ export function truncateText(text, maxLength) {
 export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// Function to add random animation delay to elements
+export function randomAnimationDelay() {
+  const delays = [
+    'animation-delay-0',
+    'animation-delay-100',
+    'animation-delay-200',
+    'animation-delay-300',
+    'animation-delay-400',
+    'animation-delay-500',
+  ];
+  return delays[Math.floor(Math.random() * delays.length)];
+}
+
+// Function to get color class based on score
+export function getScoreColorClass(score) {
+  if (score >= 90) return 'text-green-600';
+  if (score >= 80) return 'text-green-500';
+  if (score >= 70) return 'text-yellow-500';
+  if (score >= 60) return 'text-amber-500';
+  return 'text-red-500';
+}
+
+// Function to get background color class based on score
+export function getScoreBackgroundClass(score) {
+  if (score >= 90) return 'bg-green-600';
+  if (score >= 80) return 'bg-green-500';
+  if (score >= 70) return 'bg-yellow-500';
+  if (score >= 60) return 'bg-amber-500';
+  return 'bg-red-500';
+}
