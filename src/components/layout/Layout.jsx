@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 
 const Layout = ({ children }) => {
   const location = useLocation();
+  // The isAuthPage check remains but doesn't affect navbar visibility
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
   return (

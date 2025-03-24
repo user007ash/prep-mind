@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { EyeIcon, EyeOffIcon, UserIcon, MailIcon, LockIcon, CheckIcon, AlertCircleIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, UserIcon, MailIcon, LockIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -36,7 +35,6 @@ const Signup = () => {
   };
 
   const validatePassword = (password) => {
-    // Password should be at least 8 characters, include a letter, a number and a special character
     const re = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
     return re.test(password);
   };
@@ -48,7 +46,6 @@ const Signup = () => {
       [name]: value
     });
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -101,7 +98,6 @@ const Signup = () => {
     setLoading(true);
     
     try {
-      // Simulate registration
       const result = await registerUser(formData.fullName, formData.email, formData.password);
       
       if (result.success) {
@@ -138,16 +134,12 @@ const Signup = () => {
     
     let strength = 0;
     
-    // Length check
     if (formData.password.length >= 8) strength += 1;
     
-    // Contains letter check
     if (/[A-Za-z]/.test(formData.password)) strength += 1;
     
-    // Contains number check
     if (/\d/.test(formData.password)) strength += 1;
     
-    // Contains special character check
     if (/[@$!%*#?&]/.test(formData.password)) strength += 1;
     
     let text = "";
