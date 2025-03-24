@@ -1,18 +1,12 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { UserIcon, LogOutIcon } from 'lucide-react';
 
 const SignInButton = () => {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   if (user) {
     return (
@@ -24,7 +18,7 @@ const SignInButton = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={handleLogout}
+          onClick={logout}
           className="flex items-center gap-2"
         >
           <LogOutIcon className="h-4 w-4" />
