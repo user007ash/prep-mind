@@ -14,15 +14,27 @@ export const authenticateUser = (email, password) => {
     setTimeout(() => {
       // For demo purposes, any email ending with @example.com and password longer than 5 chars will work
       if (email.endsWith('@example.com') && password.length > 5) {
+        const token = 'demo-jwt-token-' + Math.random().toString(36).substr(2);
+        const userData = {
+          id: '123',
+          name: email.split('@')[0],
+          email: email,
+          role: 'user'
+        };
+        
+        // Store token and user data
+        if (localStorage.getItem('rememberMe') === 'true') {
+          localStorage.setItem('authToken', token);
+          localStorage.setItem('user', JSON.stringify(userData));
+        } else {
+          sessionStorage.setItem('authToken', token);
+          sessionStorage.setItem('user', JSON.stringify(userData));
+        }
+        
         resolve({
           success: true,
-          token: 'demo-jwt-token-' + Math.random().toString(36).substr(2),
-          user: {
-            id: '123',
-            name: email.split('@')[0],
-            email: email,
-            role: 'user'
-          }
+          token: token,
+          user: userData
         });
       } else {
         resolve({
@@ -48,9 +60,17 @@ export const registerUser = (fullName, email, password) => {
       // For demo purposes, succeed for all valid inputs
       if (email && password && fullName) {
         // In a real app, check if user already exists
-        resolve({
-          success: true,
-        });
+        if (email.endsWith('@example.com')) {
+          resolve({
+            success: true,
+            message: 'Registration successful! Please log in.'
+          });
+        } else {
+          resolve({
+            success: false,
+            message: 'Email must end with @example.com for demo purposes'
+          });
+        }
       } else {
         resolve({
           success: false,
@@ -71,11 +91,11 @@ export const isAuthenticated = () => {
 };
 
 /**
- * Get the current user from local storage
+ * Get the current user from storage
  * @returns {object|null}
  */
 export const getCurrentUser = () => {
-  const userStr = localStorage.getItem('user');
+  const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
   if (!userStr) return null;
   
   try {
@@ -86,10 +106,19 @@ export const getCurrentUser = () => {
 };
 
 /**
+ * Set remember me preference
+ * @param {boolean} value
+ */
+export const setRememberMe = (value) => {
+  localStorage.setItem('rememberMe', value.toString());
+};
+
+/**
  * Log out the current user
  */
 export const logoutUser = () => {
   localStorage.removeItem('authToken');
   sessionStorage.removeItem('authToken');
   localStorage.removeItem('user');
+  sessionStorage.removeItem('user');
 };
