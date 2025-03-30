@@ -6,6 +6,7 @@ import ResumeUpload from '../components/resume/ResumeUpload';
 import ATSScore from '../components/resume/ATSScore';
 import InterviewQuestions from '../components/interview/InterviewQuestions';
 import FeedbackSection from '../components/interview/FeedbackSection';
+import { toast } from 'sonner';
 
 // Import AI utilities
 import { analyzeResume, generateInterviewQuestions, analyzeInterviewAnswers } from '../utils/aiService';
@@ -19,22 +20,37 @@ const Index = () => {
   const [feedback, setFeedback] = useState(null);
 
   const handleResumeProcessed = async (data) => {
+    if (!data) {
+      toast.error("Invalid resume data received. Please try again.");
+      return;
+    }
+    
     setResumeData(data);
     
     try {
       setLoading(true);
+      
       // Analyze the resume to get ATS score
       const analysis = await analyzeResume(data);
+      
+      if (!analysis || typeof analysis.atsScore !== 'number') {
+        throw new Error("Failed to analyze resume. The ATS score calculation failed.");
+      }
+      
       setAtsScore(analysis.atsScore);
       
       // Generate interview questions based on resume
       const questions = await generateInterviewQuestions(data);
-      setInterviewQuestions(questions);
       
+      if (!questions || !Array.isArray(questions) || questions.length === 0) {
+        throw new Error("Failed to generate interview questions.");
+      }
+      
+      setInterviewQuestions(questions);
       setStep('analysis');
     } catch (error) {
       console.error("Error processing resume:", error);
-      alert("An error occurred while analyzing your resume. Please try again.");
+      toast.error(error.message || "An error occurred while analyzing your resume. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -45,17 +61,74 @@ const Index = () => {
   };
 
   const handleInterviewComplete = async (answers) => {
+    if (!answers || Object.keys(answers).length === 0) {
+      toast.error("No answers provided. Please complete the interview.");
+      return;
+    }
+    
     try {
       setLoading(true);
+      
       // Analyze interview answers
       const result = await analyzeInterviewAnswers(interviewQuestions, answers);
+      
+      if (!result || typeof result.overallScore !== 'number') {
+        throw new Error("Failed to analyze interview responses.");
+      }
+      
       setFeedback(result);
       setStep('feedback');
     } catch (error) {
       console.error("Error analyzing interview:", error);
-      alert("An error occurred while analyzing your interview. Please try again.");
+      toast.error(error.message || "An error occurred while analyzing your interview. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const renderCurrentStep = () => {
+    if (loading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 animate-pulse-soft">
+          <div className="relative h-12 w-12 mb-4">
+            <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
+          </div>
+          <p className="text-muted-foreground">Processing, please wait...</p>
+        </div>
+      );
+    }
+
+    switch (step) {
+      case 'upload':
+        return (
+          <ResumeUpload 
+            onResumeProcessed={handleResumeProcessed} 
+            setLoading={setLoading} 
+          />
+        );
+      case 'analysis':
+        return atsScore !== null ? (
+          <ATSScore 
+            score={atsScore} 
+            onStartInterview={handleStartInterview} 
+          />
+        ) : null;
+      case 'interview':
+        return (
+          <InterviewQuestions 
+            questions={interviewQuestions} 
+            onComplete={handleInterviewComplete} 
+          />
+        );
+      case 'feedback':
+        return feedback ? (
+          <FeedbackSection 
+            feedback={feedback} 
+            score={feedback.overallScore} 
+          />
+        ) : null;
+      default:
+        return null;
     }
   };
 
@@ -78,42 +151,7 @@ const Index = () => {
               </p>
             </header>
 
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-12 animate-pulse-soft">
-                <div className="relative h-12 w-12 mb-4">
-                  <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
-                </div>
-                <p className="text-muted-foreground">Processing, please wait...</p>
-              </div>
-            )}
-
-            {!loading && step === 'upload' && (
-              <ResumeUpload 
-                onResumeProcessed={handleResumeProcessed} 
-                setLoading={setLoading} 
-              />
-            )}
-
-            {!loading && step === 'analysis' && atsScore !== null && (
-              <ATSScore 
-                score={atsScore} 
-                onStartInterview={handleStartInterview} 
-              />
-            )}
-
-            {!loading && step === 'interview' && (
-              <InterviewQuestions 
-                questions={interviewQuestions} 
-                onComplete={handleInterviewComplete} 
-              />
-            )}
-
-            {!loading && step === 'feedback' && feedback && (
-              <FeedbackSection 
-                feedback={feedback} 
-                score={feedback.overallScore} 
-              />
-            )}
+            {renderCurrentStep()}
           </div>
         </Container>
       </main>

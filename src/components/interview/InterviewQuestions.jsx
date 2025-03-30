@@ -1,8 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
 import Button from '../ui/Button';
 import VoiceRecorder from './VoiceRecorder';
+import QuestionProgress from './QuestionProgress';
+import { toast } from 'sonner';
 
 const InterviewQuestions = ({ questions, onComplete }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -32,7 +33,23 @@ const InterviewQuestions = ({ questions, onComplete }) => {
   };
 
   const handleSubmit = () => {
+    // Make sure we have answers for all questions
+    const allQuestionsAnswered = questions.every(q => answers[q]);
+    
+    if (!allQuestionsAnswered) {
+      toast.warning("Please answer all questions before submitting");
+      return;
+    }
+    
     onComplete(answers);
+  };
+
+  const handleReRecord = () => {
+    setAnswers(prev => {
+      const newAnswers = {...prev};
+      delete newAnswers[currentQuestion];
+      return newAnswers;
+    });
   };
 
   return (
@@ -44,12 +61,10 @@ const InterviewQuestions = ({ questions, onComplete }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex justify-between text-sm mb-4">
-          <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
-          <span className="text-primary font-medium">
-            {Math.round((currentQuestionIndex / questions.length) * 100)}% Complete
-          </span>
-        </div>
+        <QuestionProgress 
+          currentQuestionIndex={currentQuestionIndex} 
+          totalQuestions={questions.length} 
+        />
         
         <div className="p-5 rounded-lg bg-secondary/50">
           <h3 className="text-xl font-semibold mb-2">{currentQuestion}</h3>
@@ -83,11 +98,7 @@ const InterviewQuestions = ({ questions, onComplete }) => {
           <div className="flex justify-end space-x-3">
             <Button 
               variant="outline"
-              onClick={() => setAnswers(prev => {
-                const newAnswers = {...prev};
-                delete newAnswers[currentQuestion];
-                return newAnswers;
-              })}
+              onClick={handleReRecord}
             >
               Re-record
             </Button>
@@ -117,7 +128,7 @@ const InterviewQuestions = ({ questions, onComplete }) => {
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M22 21v-2a4 4 0 0 1 0 7.75"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
           AI Interviewer

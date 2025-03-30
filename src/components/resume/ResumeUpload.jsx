@@ -10,7 +10,14 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const inputRef = useRef(null);
+
+  const allowedFileTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -40,10 +47,9 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
 
   const handleFile = (file) => {
     setError('');
-    if (file.type === 'application/pdf' || 
-        file.type === 'application/msword' || 
-        file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    if (allowedFileTypes.includes(file.type)) {
       setFile(file);
+      toast.success('File uploaded successfully');
     } else {
       setFile(null);
       setError('Please upload a PDF or Word document');
@@ -52,22 +58,48 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+      toast.error('Please upload a resume file first');
+      return;
+    }
     
     try {
       setLoading(true);
       setProcessing(true);
       setError('');
       
+      // Simulate upload progress for better UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const newProgress = prev + 10;
+          if (newProgress >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return newProgress;
+        });
+      }, 300);
+      
       const parsedData = await parseResume(file);
       
+      // Complete the progress
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      // Data validation
+      if (!parsedData || !parsedData.completenessScore) {
+        throw new Error('Resume parsing failed. Please try another file.');
+      }
+      
       // Check for missing elements and provide feedback
-      if (parsedData.completenessScore < 75 && parsedData.missingElements.length > 0) {
+      if (parsedData.completenessScore < 75 && parsedData.missingElements && parsedData.missingElements.length > 0) {
         const missingParts = parsedData.missingElements.join(', ');
         toast.warning(`Your resume could be improved. Consider adding: ${missingParts}`);
       }
       
+      // Success
       onResumeProcessed(parsedData);
+      toast.success('Resume analyzed successfully!');
     } catch (error) {
       console.error("Error processing resume:", error);
       setError(error.message || "Failed to process resume. Please try again.");
@@ -75,6 +107,7 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
     } finally {
       setProcessing(false);
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
