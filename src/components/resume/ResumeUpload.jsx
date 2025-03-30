@@ -9,6 +9,7 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
+  const [processing, setProcessing] = useState(false);
   const inputRef = useRef(null);
 
   const handleDrag = (e) => {
@@ -55,14 +56,24 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
     
     try {
       setLoading(true);
+      setProcessing(true);
       setError('');
+      
       const parsedData = await parseResume(file);
+      
+      // Check for missing elements and provide feedback
+      if (parsedData.completenessScore < 75 && parsedData.missingElements.length > 0) {
+        const missingParts = parsedData.missingElements.join(', ');
+        toast.warning(`Your resume could be improved. Consider adding: ${missingParts}`);
+      }
+      
       onResumeProcessed(parsedData);
     } catch (error) {
       console.error("Error processing resume:", error);
       setError(error.message || "Failed to process resume. Please try again.");
       toast.error(error.message || "Failed to process resume. Please try again.");
     } finally {
+      setProcessing(false);
       setLoading(false);
     }
   };
@@ -106,6 +117,9 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
               <span className="text-sm font-medium">{file.name}</span>
+              <p className="text-xs text-muted-foreground mt-1">
+                {file.type.includes('pdf') ? 'PDF Document' : 'Word Document'} • {Math.round(file.size / 1024)} KB
+              </p>
               <button 
                 className="text-xs text-red-500 mt-2"
                 onClick={() => setFile(null)}
@@ -146,9 +160,9 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
       <CardFooter className="justify-end">
         <Button
           onClick={handleUpload}
-          disabled={!file}
+          disabled={!file || processing}
         >
-          Analyze Resume
+          {processing ? 'Analyzing...' : 'Analyze Resume'}
         </Button>
       </CardFooter>
     </Card>
