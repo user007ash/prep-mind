@@ -1,12 +1,7 @@
 
-/**
- * Utility functions for the app
- */
-
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// Combines tailwind classes with conditional logic
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
