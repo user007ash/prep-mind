@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { convertSpeechToText } from '../../utils/speechToText';
 import { toast } from 'sonner';
-import AudioVisualizer from './AudioVisualizer';
-import RecordingTimer from './RecordingTimer';
+import AudioCapture from './AudioCapture';
+import ProcessingStatus from './ProcessingStatus';
 
 const VoiceRecorder = ({ onRecordingComplete }) => {
   const [isRecording, setIsRecording] = useState(true);
@@ -224,70 +224,22 @@ const VoiceRecorder = ({ onRecordingComplete }) => {
   // Render components based on recording state
   if (isRecording) {
     return (
-      <div className="flex flex-col items-center p-6 rounded-lg bg-white/30 dark:bg-black/30 shadow-sm">
-        <AudioVisualizer audioLevel={audioLevel} />
-        
-        <RecordingTimer recordingTime={recordingTime} maxRecordingTime={maxRecordingTime} />
-        
-        <div className="text-center max-w-md mb-4">
-          <p className="text-sm text-muted-foreground">
-            Speak clearly into your microphone. Answer the question thoroughly and confidently.
-          </p>
-          {silenceDetected && (
-            <p className="text-amber-500 text-sm mt-2 animate-pulse">
-              No voice detected. Please continue speaking.
-            </p>
-          )}
-        </div>
-        
-        <button
-          className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full transition-colors flex items-center"
-          onClick={stopRecording}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-          </svg>
-          Stop Recording
-        </button>
-      </div>
+      <AudioCapture
+        audioLevel={audioLevel}
+        recordingTime={recordingTime}
+        maxRecordingTime={maxRecordingTime}
+        silenceDetected={silenceDetected}
+        stopRecording={stopRecording}
+      />
     );
   }
   
   // Processing state
   return (
-    <div className="flex flex-col items-center p-6 rounded-lg bg-white/30 dark:bg-black/30 shadow-sm">
-      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-          <line x1="12" x2="12" y1="19" y2="22"></line>
-        </svg>
-      </div>
-      
-      <div className="text-lg font-medium mb-2">
-        Processing Your Answer
-      </div>
-      
-      <div className="text-center max-w-md mb-6">
-        <p className="text-sm text-muted-foreground">
-          {processingStatus || "Analyzing your response..."}
-        </p>
-      </div>
-      
-      {!transcript && (
-        <div className="flex items-center space-x-3">
-          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-          <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-100"></div>
-          <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-200"></div>
-        </div>
-      )}
-      
-      {transcript && (
-        <div className="w-full p-4 bg-white/50 dark:bg-black/20 rounded-lg mt-2">
-          <p className="text-sm italic">{transcript}</p>
-        </div>
-      )}
-    </div>
+    <ProcessingStatus 
+      processingStatus={processingStatus}
+      transcript={transcript}
+    />
   );
 };
 

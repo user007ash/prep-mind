@@ -2,9 +2,11 @@
 import React from 'react';
 
 const Spinner = ({ size = 5, className = "" }) => {
+  const sizeClass = typeof size === 'number' ? `h-${size} w-${size}` : size;
+
   return (
     <svg 
-      className={`animate-spin h-${size} w-${size} ${className}`} 
+      className={`animate-spin ${sizeClass} ${className}`} 
       xmlns="http://www.w3.org/2000/svg" 
       fill="none" 
       viewBox="0 0 24 24"

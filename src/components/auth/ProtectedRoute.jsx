@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from 'react';
+import Spinner from '../ui/Spinner';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -20,10 +21,12 @@ const ProtectedRoute = ({ children }) => {
   }, [loading, user, toast]);
 
   if (loading) {
-    // Show loading spinner or skeleton while checking authentication
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center">
+          <Spinner size={12} className="text-primary" />
+          <p className="mt-4 text-muted-foreground">Checking authentication...</p>
+        </div>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
 
 const AuthContext = createContext(null);
@@ -14,6 +14,12 @@ export const AuthProvider = ({ children }) => {
     // Check if user is authenticated on initial load
     const checkAuth = async () => {
       try {
+        if (!isSupabaseConfigured()) {
+          console.warn("Supabase is not properly configured. Auth features won't work.");
+          setLoading(false);
+          return;
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
@@ -34,22 +40,27 @@ export const AuthProvider = ({ children }) => {
 
     checkAuth();
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          const { user } = session;
-          setUser({
-            id: user.id,
-            email: user.email,
-            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-            role: 'user'
-          });
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
+    // Set up auth state listener if Supabase is configured
+    let subscription;
+    if (isSupabaseConfigured()) {
+      const { data } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            const { user } = session;
+            setUser({
+              id: user.id,
+              email: user.email,
+              name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+              role: 'user'
+            });
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+          }
         }
-      }
-    );
+      );
+      
+      subscription = data.subscription;
+    }
 
     // Cleanup
     return () => {
@@ -59,6 +70,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      if (!isSupabaseConfigured()) {
+        return { 
+          success: false, 
+          message: "Authentication is not configured. Please check Supabase setup." 
+        };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -76,13 +94,28 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         return { success: true, user: userData };
       }
+      
+      return { 
+        success: false, 
+        message: "Login failed. Please try again." 
+      };
     } catch (error) {
-      return { success: false, message: error.message || 'Login failed' };
+      return { 
+        success: false, 
+        message: error.message || 'Login failed' 
+      };
     }
   };
 
   const signup = async (email, password, fullName) => {
     try {
+      if (!isSupabaseConfigured()) {
+        return { 
+          success: false, 
+          message: "Authentication is not configured. Please check Supabase setup." 
+        };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -102,13 +135,26 @@ export const AuthProvider = ({ children }) => {
         });
         return { success: true };
       }
+      
+      return { 
+        success: false, 
+        message: "Signup failed. Please try again." 
+      };
     } catch (error) {
-      return { success: false, message: error.message || 'Signup failed' };
+      return { 
+        success: false, 
+        message: error.message || 'Signup failed' 
+      };
     }
   };
 
   const logout = async () => {
     try {
+      if (!isSupabaseConfigured()) {
+        setUser(null);
+        return;
+      }
+
       await supabase.auth.signOut();
       setUser(null);
       toast({
@@ -124,7 +170,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, signup, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      signup, 
+      loading,
+      isAuthenticated: !!user
+    }}>
       {children}
     </AuthContext.Provider>
   );

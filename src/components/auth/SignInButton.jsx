@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { UserIcon, LogOutIcon } from 'lucide-react';
+import { useAuthActions } from '@/hooks/useAuthActions';
 
 const SignInButton = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const { handleLogout } = useAuthActions();
 
   if (user) {
     return (
@@ -18,7 +20,7 @@ const SignInButton = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={logout}
+          onClick={() => handleLogout()}
           className="flex items-center gap-2"
         >
           <LogOutIcon className="h-4 w-4" />

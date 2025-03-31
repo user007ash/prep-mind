@@ -1,112 +1,71 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { UserIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/context/AuthContext';
 import PasswordInput from './PasswordInput';
 import Spinner from '../ui/Spinner';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import { useAuthActions } from '@/hooks/useAuthActions';
 
 const LoginForm = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const { handleLogin } = useAuthActions();
+  
+  const from = location.state?.from?.pathname || '/dashboard';
+  
+  const validateForm = (values) => {
+    const errors = {};
+    
+    if (!values.email?.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+    
+    if (!values.password) {
+      errors.password = "Password is required";
+    }
+    
+    return errors;
+  };
+  
+  const {
+    values,
+    errors,
+    handleChange,
+    validateForm: validate,
+    setErrors
+  } = useFormValidation({
     email: location.state?.email || '',
     password: '',
     rememberMe: false
-  });
-  const [errors, setErrors] = useState({
-    email: '',
-    password: '',
-    general: ''
-  });
-
-  const from = location.state?.from?.pathname || '/dashboard';
-
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-    
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    }
-    
-    setErrors({
-      ...errors,
-      ...newErrors
-    });
-    
-    return Object.keys(newErrors).length === 0;
-  };
+  }, validateForm);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validate()) {
       return;
     }
     
     setLoading(true);
     setErrors({ ...errors, general: '' });
     
-    try {
-      const result = await login(formData.email, formData.password);
-      
-      if (result.success) {
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        
-        navigate(from);
-      } else {
-        setErrors({
-          ...errors,
-          general: result.message || "Incorrect email or password"
-        });
-      }
-    } catch (error) {
-      console.error("Login error:", error);
+    const result = await handleLogin(values.email, values.password, from);
+    
+    if (!result.success) {
       setErrors({
         ...errors,
-        general: "An error occurred. Please try again later."
+        general: result.message
       });
-    } finally {
-      setLoading(false);
     }
+    
+    setLoading(false);
   };
 
   return (
@@ -127,7 +86,7 @@ const LoginForm = () => {
             id="email"
             name="email"
             type="text"
-            value={formData.email}
+            value={values.email}
             onChange={handleChange}
             placeholder="name@example.com"
             className={`pl-10 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
@@ -146,7 +105,7 @@ const LoginForm = () => {
         <PasswordInput
           id="password"
           name="password"
-          value={formData.password}
+          value={values.password}
           onChange={handleChange}
           hasError={!!errors.password}
         />
@@ -157,9 +116,11 @@ const LoginForm = () => {
         <Checkbox 
           id="rememberMe" 
           name="rememberMe"
-          checked={formData.rememberMe}
+          checked={values.rememberMe}
           onCheckedChange={(checked) => 
-            setFormData({...formData, rememberMe: checked})
+            handleChange({
+              target: { name: 'rememberMe', type: 'checkbox', checked }
+            })
           }
         />
         <Label 
