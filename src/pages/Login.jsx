@@ -1,19 +1,19 @@
 
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { EyeIcon, EyeOffIcon, UserIcon, LockIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
 import Container from '@/components/layout/Container';
-import { authenticateUser } from '@/utils/authService';
+import { useAuth } from '@/context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const location = useLocation();
+  const { login, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,6 +26,23 @@ const Login = () => {
     password: '',
     general: ''
   });
+
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  // Check if user came from registration with success message
+  useEffect(() => {
+    if (location.state?.registrationSuccess) {
+      setFormData(prev => ({
+        ...prev,
+        email: location.state.email || ''
+      }));
+    }
+  }, [location.state]);
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -77,31 +94,15 @@ const Login = () => {
     }
     
     setLoading(true);
+    setErrors({ ...errors, general: '' });
     
     try {
-      // Simulate authentication
-      const result = await authenticateUser(formData.email, formData.password);
+      const result = await login(formData.email, formData.password);
       
-      if (result.success) {
-        // Store token/user info
-        if (formData.rememberMe) {
-          localStorage.setItem('authToken', result.token);
-        } else {
-          sessionStorage.setItem('authToken', result.token);
-        }
-        
-        localStorage.setItem('user', JSON.stringify(result.user));
-        
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-        
-        navigate('/dashboard');
-      } else {
+      if (!result.success) {
         setErrors({
           ...errors,
-          general: "Incorrect email or password"
+          general: result.message || "Incorrect email or password"
         });
       }
     } catch (error) {

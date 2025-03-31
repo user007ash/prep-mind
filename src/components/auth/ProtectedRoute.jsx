@@ -1,6 +1,7 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -16,6 +17,9 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!user) {
+    // Show toast notification that login is required
+    toast.error("You need to log in to access this feature.");
+    
     // Redirect to login if not authenticated
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
