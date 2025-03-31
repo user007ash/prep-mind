@@ -1,17 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { EyeIcon, EyeOffIcon, UserIcon, MailIcon, LockIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, UserIcon, MailIcon, LockIcon, CheckIcon, AlertCircleIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { useToast } from "@/hooks/use-toast";
 import Container from '@/components/layout/Container';
-import { useAuth } from '@/context/AuthContext';
+import { registerUser } from '@/utils/authService';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { signup, user } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -28,13 +29,6 @@ const Signup = () => {
     confirmPassword: '',
     general: ''
   });
-
-  // If user is already logged in, redirect to dashboard
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -105,12 +99,24 @@ const Signup = () => {
     }
     
     setLoading(true);
-    setErrors({ ...errors, general: '' });
     
     try {
-      const result = await signup(formData.email, formData.password, formData.fullName);
+      // Simulate registration
+      const result = await registerUser(formData.fullName, formData.email, formData.password);
       
-      if (!result.success) {
+      if (result.success) {
+        toast({
+          title: "Account created",
+          description: "You've successfully signed up!",
+        });
+        
+        navigate('/login', { 
+          state: { 
+            registrationSuccess: true,
+            email: formData.email
+          } 
+        });
+      } else {
         setErrors({
           ...errors,
           general: result.message || "Error creating account. Please try again."

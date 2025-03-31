@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import Container from '../components/layout/Container';
 import Navbar from '../components/layout/Navbar';
 import ResumeUpload from '../components/resume/ResumeUpload';
@@ -8,32 +7,17 @@ import ATSScore from '../components/resume/ATSScore';
 import InterviewQuestions from '../components/interview/InterviewQuestions';
 import FeedbackSection from '../components/interview/FeedbackSection';
 import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
 
 // Import AI utilities
 import { analyzeResume, generateInterviewQuestions, analyzeInterviewAnswers } from '../utils/aiService';
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [step, setStep] = useState('upload'); // upload, analysis, interview, feedback
   const [loading, setLoading] = useState(false);
   const [resumeData, setResumeData] = useState(null);
   const [atsScore, setAtsScore] = useState(null);
   const [interviewQuestions, setInterviewQuestions] = useState([]);
   const [feedback, setFeedback] = useState(null);
-
-  const handleGetStarted = () => {
-    if (user) {
-      // If user is logged in, go straight to upload
-      navigate('/dashboard');
-    } else {
-      // If not logged in, redirect to login
-      navigate('/login');
-      toast.info("You need to log in to access this feature.");
-    }
-  };
 
   const handleResumeProcessed = async (data) => {
     if (!data) {
@@ -114,17 +98,38 @@ const Index = () => {
       );
     }
 
-    return (
-      <div className="text-center mt-10">
-        <h2 className="text-2xl font-bold mb-4">Prepare for Your Next Interview</h2>
-        <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-          Upload your resume, practice with AI-generated interview questions, and receive personalized feedback to improve your chances of landing your dream job.
-        </p>
-        <Button size="lg" onClick={handleGetStarted} className="animate-pulse-soft">
-          Get Started
-        </Button>
-      </div>
-    );
+    switch (step) {
+      case 'upload':
+        return (
+          <ResumeUpload 
+            onResumeProcessed={handleResumeProcessed} 
+            setLoading={setLoading} 
+          />
+        );
+      case 'analysis':
+        return atsScore !== null ? (
+          <ATSScore 
+            score={atsScore} 
+            onStartInterview={handleStartInterview} 
+          />
+        ) : null;
+      case 'interview':
+        return (
+          <InterviewQuestions 
+            questions={interviewQuestions} 
+            onComplete={handleInterviewComplete} 
+          />
+        );
+      case 'feedback':
+        return feedback ? (
+          <FeedbackSection 
+            feedback={feedback} 
+            score={feedback.overallScore} 
+          />
+        ) : null;
+      default:
+        return null;
+    }
   };
 
   return (
