@@ -1,5 +1,5 @@
 
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Authenticate a user with email and password

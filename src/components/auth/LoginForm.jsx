@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,12 +9,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import PasswordInput from './PasswordInput';
 import Spinner from '../ui/Spinner';
 import { useFormValidation } from '@/hooks/useFormValidation';
-import { useAuthActions } from '@/hooks/useAuthActions';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const LoginForm = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { handleLogin } = useAuthActions();
+  const { login } = useAuth();
+  const { toast } = useToast();
   
   const from = location.state?.from?.pathname || '/dashboard';
   
@@ -56,16 +59,32 @@ const LoginForm = () => {
     setLoading(true);
     setErrors({ ...errors, general: '' });
     
-    const result = await handleLogin(values.email, values.password, from);
-    
-    if (!result.success) {
+    try {
+      const result = await login(values.email, values.password);
+      
+      if (result.success) {
+        navigate(from);
+      } else {
+        setErrors({
+          ...errors,
+          general: result.message || "Invalid email or password"
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       setErrors({
         ...errors,
-        general: result.message
+        general: "An unexpected error occurred. Please try again."
       });
+      
+      toast({
+        title: "Login failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
