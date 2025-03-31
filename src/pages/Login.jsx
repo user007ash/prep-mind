@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { EyeIcon, EyeOffIcon, UserIcon, LockIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,11 +9,13 @@ import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription }
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import Container from '@/components/layout/Container';
-import { authenticateUser } from '@/utils/authService';
+import { useAuth } from '@/context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { login, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,6 +28,31 @@ const Login = () => {
     password: '',
     general: ''
   });
+
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  useEffect(() => {
+    // If user is already logged in, redirect to the dashboard
+    if (user) {
+      navigate(from);
+    }
+
+    // Check if redirected from signup
+    if (location.state?.registrationSuccess) {
+      toast({
+        title: "Registration successful",
+        description: "Please login with your credentials",
+      });
+      
+      // Prefill email if provided
+      if (location.state.email) {
+        setFormData(prev => ({
+          ...prev,
+          email: location.state.email
+        }));
+      }
+    }
+  }, [user, navigate, from, location.state, toast]);
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -77,31 +104,22 @@ const Login = () => {
     }
     
     setLoading(true);
+    setErrors({ ...errors, general: '' });
     
     try {
-      // Simulate authentication
-      const result = await authenticateUser(formData.email, formData.password);
+      const result = await login(formData.email, formData.password);
       
       if (result.success) {
-        // Store token/user info
-        if (formData.rememberMe) {
-          localStorage.setItem('authToken', result.token);
-        } else {
-          sessionStorage.setItem('authToken', result.token);
-        }
-        
-        localStorage.setItem('user', JSON.stringify(result.user));
-        
         toast({
           title: "Login successful",
           description: "Welcome back!",
         });
         
-        navigate('/dashboard');
+        navigate(from);
       } else {
         setErrors({
           ...errors,
-          general: "Incorrect email or password"
+          general: result.message || "Incorrect email or password"
         });
       }
     } catch (error) {

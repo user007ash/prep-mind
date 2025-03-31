@@ -1,6 +1,5 @@
 
-// A simple authentication service for demonstration purposes
-// In a real application, this would connect to a backend API
+import { supabase } from '../lib/supabase';
 
 /**
  * Authenticate a user with email and password
@@ -8,30 +7,38 @@
  * @param {string} password User's password
  * @returns {Promise<{success: boolean, token?: string, user?: object, message?: string}>}
  */
-export const authenticateUser = (email, password) => {
-  return new Promise((resolve) => {
-    // Simulate API call delay
-    setTimeout(() => {
-      // For demo purposes, any email ending with @example.com and password longer than 5 chars will work
-      if (email.endsWith('@example.com') && password.length > 5) {
-        resolve({
-          success: true,
-          token: 'demo-jwt-token-' + Math.random().toString(36).substr(2),
-          user: {
-            id: '123',
-            name: email.split('@')[0],
-            email: email,
-            role: 'user'
-          }
-        });
-      } else {
-        resolve({
-          success: false,
-          message: 'Incorrect email or password'
-        });
-      }
-    }, 1000);
-  });
+export const authenticateUser = async (email, password) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+
+    if (data.user) {
+      return {
+        success: true,
+        token: data.session?.access_token,
+        user: {
+          id: data.user.id,
+          name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0],
+          email: data.user.email,
+          role: 'user'
+        }
+      };
+    } else {
+      return {
+        success: false,
+        message: 'Authentication failed'
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || 'Authentication failed'
+    };
+  }
 };
 
 /**
@@ -41,55 +48,60 @@ export const authenticateUser = (email, password) => {
  * @param {string} password User's password
  * @returns {Promise<{success: boolean, message?: string}>}
  */
-export const registerUser = (fullName, email, password) => {
-  return new Promise((resolve) => {
-    // Simulate API call delay
-    setTimeout(() => {
-      // For demo purposes, succeed for all valid inputs
-      if (email && password && fullName) {
-        // In a real app, check if user already exists
-        resolve({
-          success: true,
-        });
-      } else {
-        resolve({
-          success: false,
-          message: 'Invalid registration data'
-        });
-      }
-    }, 1000);
-  });
+export const registerUser = async (fullName, email, password) => {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
+
+    if (error) throw error;
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || 'Registration failed'
+    };
+  }
 };
 
 /**
  * Check if a user is logged in
- * @returns {boolean}
+ * @returns {Promise<boolean>}
  */
-export const isAuthenticated = () => {
-  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-  return !!token;
+export const isAuthenticated = async () => {
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
 };
 
 /**
- * Get the current user from local storage
- * @returns {object|null}
+ * Get the current user from Supabase
+ * @returns {Promise<object|null>}
  */
-export const getCurrentUser = () => {
-  const userStr = localStorage.getItem('user');
-  if (!userStr) return null;
+export const getCurrentUser = async () => {
+  const { data } = await supabase.auth.getUser();
   
-  try {
-    return JSON.parse(userStr);
-  } catch (e) {
-    return null;
-  }
+  if (!data.user) return null;
+  
+  return {
+    id: data.user.id,
+    name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0],
+    email: data.user.email,
+    role: 'user'
+  };
 };
 
 /**
  * Log out the current user
  */
-export const logoutUser = () => {
-  localStorage.removeItem('authToken');
-  sessionStorage.removeItem('authToken');
-  localStorage.removeItem('user');
+export const logoutUser = async () => {
+  await supabase.auth.signOut();
 };

@@ -1,10 +1,23 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from 'react';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    if (!loading && !user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to log in to access this feature.",
+        variant: "destructive",
+      });
+    }
+  }, [loading, user, toast]);
 
   if (loading) {
     // Show loading spinner or skeleton while checking authentication

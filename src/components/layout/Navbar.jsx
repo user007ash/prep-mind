@@ -1,13 +1,15 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Container from './Container';
+import SignInButton from '../auth/SignInButton';
 
 const Navbar = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass animate-fade-in">
       <Container>
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -25,7 +27,9 @@ const Navbar = () => {
               </svg>
             </div>
             <span className="text-lg font-medium">PrepMind</span>
-          </div>
+          </Link>
+          
+          <SignInButton />
         </div>
       </Container>
     </header>
