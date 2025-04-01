@@ -2,19 +2,13 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, BadgeCheck, Calendar, Phone, MapPin } from 'lucide-react';
+import ProfileAvatar from './profile/ProfileAvatar';
+import ProfileContent from './profile/ProfileContent';
 
 const UserProfileCard = () => {
   const { user } = useAuth();
 
   if (!user) return null;
-
-  // Calculate member since date (this is just a placeholder - in a real app you'd get this from the database)
-  const formattedDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
 
   return (
     <Card className="w-full">
@@ -24,45 +18,8 @@ const UserProfileCard = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col space-y-4">
-          <div className="flex items-center justify-center mb-4">
-            <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-12 w-12 text-primary" />
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <User className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Name</p>
-                <p className="font-medium">{user.name || 'Not provided'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <Mail className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Email</p>
-                <p className="font-medium">{user.email}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <BadgeCheck className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Account type</p>
-                <p className="font-medium capitalize">{user.role || 'User'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <Calendar className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Member since</p>
-                <p className="font-medium">{formattedDate}</p>
-              </div>
-            </div>
-          </div>
+          <ProfileAvatar />
+          <ProfileContent user={user} />
         </div>
       </CardContent>
       <CardFooter className="pt-0">
