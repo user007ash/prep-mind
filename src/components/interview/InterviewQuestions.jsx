@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
 import Button from '../ui/Button';
@@ -27,6 +28,15 @@ const InterviewQuestions = ({ questions, onComplete }) => {
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      setIsCompleted(true);
+    }
+  };
+
+  const handleSkipQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      toast.info("Question skipped");
     } else {
       setIsCompleted(true);
     }
@@ -77,7 +87,7 @@ const InterviewQuestions = ({ questions, onComplete }) => {
         </div>
 
         {!isRecording && !answers[currentQuestion] ? (
-          <div className="flex justify-center">
+          <div className="flex justify-center space-x-3">
             <Button
               variant="default"
               size="lg"
@@ -90,6 +100,12 @@ const InterviewQuestions = ({ questions, onComplete }) => {
                 <line x1="12" x2="12" y1="19" y2="22"></line>
               </svg>
               Begin Speaking
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSkipQuestion}
+            >
+              Skip Question
             </Button>
           </div>
         ) : isRecording ? (
@@ -128,7 +144,7 @@ const InterviewQuestions = ({ questions, onComplete }) => {
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 1 0 7.75"></path>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
           AI Interviewer

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -18,11 +18,23 @@ const Dashboard = () => {
   const [resultsLoading, setResultsLoading] = useState(true);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
+
+  // Effect to check if we just completed a test (coming from interview page)
+  useEffect(() => {
+    const justCompletedTest = location.state?.testCompleted;
+    
+    if (justCompletedTest) {
+      toast.success("Test results saved successfully!");
+      // Clear the location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   useEffect(() => {
     const fetchTestResults = async () => {
@@ -50,6 +62,31 @@ const Dashboard = () => {
     if (user) {
       fetchTestResults();
       setLoading(false);
+    }
+
+    // Set up real-time subscription to test_results table
+    if (user) {
+      const channel = supabase
+        .channel('public:test_results')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'test_results',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            // When a new test result is inserted, update the state
+            setTestResults(prevResults => [payload.new, ...prevResults]);
+            toast.success("New test results available!");
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
   
