@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserIcon, MailIcon, BadgeIcon, CalendarIcon } from 'lucide-react';
+import { User, Mail, BadgeCheck, Calendar, Phone, MapPin } from 'lucide-react';
 
 const UserProfileCard = () => {
   const { user } = useAuth();
@@ -26,13 +26,13 @@ const UserProfileCard = () => {
         <div className="flex flex-col space-y-4">
           <div className="flex items-center justify-center mb-4">
             <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
-              <UserIcon className="h-12 w-12 text-primary" />
+              <User className="h-12 w-12 text-primary" />
             </div>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <UserIcon className="h-5 w-5 text-primary mt-0.5" />
+              <User className="h-5 w-5 text-primary mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Name</p>
                 <p className="font-medium">{user.name || 'Not provided'}</p>
@@ -40,7 +40,7 @@ const UserProfileCard = () => {
             </div>
             
             <div className="flex items-start gap-3">
-              <MailIcon className="h-5 w-5 text-primary mt-0.5" />
+              <Mail className="h-5 w-5 text-primary mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Email</p>
                 <p className="font-medium">{user.email}</p>
@@ -48,7 +48,7 @@ const UserProfileCard = () => {
             </div>
             
             <div className="flex items-start gap-3">
-              <BadgeIcon className="h-5 w-5 text-primary mt-0.5" />
+              <BadgeCheck className="h-5 w-5 text-primary mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Account type</p>
                 <p className="font-medium capitalize">{user.role || 'User'}</p>
@@ -56,7 +56,7 @@ const UserProfileCard = () => {
             </div>
             
             <div className="flex items-start gap-3">
-              <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
+              <Calendar className="h-5 w-5 text-primary mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Member since</p>
                 <p className="font-medium">{formattedDate}</p>

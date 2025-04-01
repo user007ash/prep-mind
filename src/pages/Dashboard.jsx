@@ -8,9 +8,14 @@ import { useAuth } from '@/context/AuthContext';
 import UserProfileCard from '@/components/dashboard/UserProfileCard';
 import Spinner from '@/components/ui/Spinner';
 import { LogOut, Home, User, Calendar, Search, Settings } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('interviews');
+  const [testResults, setTestResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [resultsLoading, setResultsLoading] = useState(true);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -18,8 +23,37 @@ const Dashboard = () => {
     await logout();
     navigate('/login');
   };
+
+  useEffect(() => {
+    const fetchTestResults = async () => {
+      if (!user) return;
+      
+      try {
+        setResultsLoading(true);
+        const { data, error } = await supabase
+          .from('test_results')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        setTestResults(data || []);
+      } catch (error) {
+        console.error("Error fetching test results:", error);
+        toast.error("Failed to load your test results");
+      } finally {
+        setResultsLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchTestResults();
+      setLoading(false);
+    }
+  }, [user]);
   
-  if (!user) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center">
@@ -34,49 +68,6 @@ const Dashboard = () => {
     { id: 1, name: "Software_Engineer_Resume.pdf", uploadDate: "2023-05-15", atsScore: 82 },
     { id: 2, name: "Frontend_Developer.pdf", uploadDate: "2023-07-22", atsScore: 76 },
     { id: 3, name: "FullStack_2023.pdf", uploadDate: "2023-09-10", atsScore: 89 }
-  ];
-  
-  const mockInterviews = [
-    { 
-      id: 1, 
-      date: "2023-05-20", 
-      position: "Frontend Developer", 
-      company: "Tech Solutions Inc.", 
-      score: 84,
-      questionCount: 8
-    },
-    { 
-      id: 2, 
-      date: "2023-08-05", 
-      position: "Full Stack Engineer", 
-      company: "Innovation Labs", 
-      score: 78,
-      questionCount: 10
-    },
-    { 
-      id: 3, 
-      date: "2023-09-12", 
-      position: "React Developer", 
-      company: "Creative Digital", 
-      score: 91,
-      questionCount: 7
-    },
-    { 
-      id: 4, 
-      date: "2023-10-18", 
-      position: "Software Engineer", 
-      company: "Global Tech Co.", 
-      score: 86,
-      questionCount: 9
-    },
-    { 
-      id: 5, 
-      date: "2023-12-03", 
-      position: "UI/UX Developer", 
-      company: "Design Solutions", 
-      score: 82,
-      questionCount: 6
-    }
   ];
 
   return (
@@ -134,7 +125,7 @@ const Dashboard = () => {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-semibold">Dashboard</h2>
-                  <Button className="pulse-animation">
+                  <Button className="pulse-animation" onClick={() => navigate('/index')}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                       <path d="M12 5v14"></path>
                       <path d="M5 12h14"></path>
@@ -146,17 +137,21 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <StatCard 
                     title="Average ATS Score" 
-                    value="82%"
+                    value={testResults.length > 0 
+                      ? Math.round(testResults.reduce((acc, curr) => acc + (curr.ats_score || 0), 0) / testResults.length) + '%'
+                      : "N/A"}
                     icon={<User className="h-6 w-6" />}
                   />
                   <StatCard 
                     title="Average Interview Score" 
-                    value="84%"
+                    value={testResults.length > 0 
+                      ? Math.round(testResults.reduce((acc, curr) => acc + (curr.total_score || 0), 0) / testResults.length) + '%'
+                      : "N/A"}
                     icon={<Calendar className="h-6 w-6" />}
                   />
                   <StatCard 
-                    title="Questions Answered" 
-                    value="40"
+                    title="Tests Completed" 
+                    value={testResults.length.toString()}
                     icon={<Search className="h-6 w-6" />}
                   />
                 </div>
@@ -191,32 +186,47 @@ const Dashboard = () => {
                 <div className="p-6">
                   {activeTab === 'interviews' ? (
                     <div>
-                      <h3 className="text-lg font-medium mb-4">Recent Interviews</h3>
-                      <div className="space-y-4">
-                        {mockInterviews.map(interview => (
-                          <div key={interview.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                            <div className="mb-4 md:mb-0">
-                              <h4 className="font-medium">{interview.position}</h4>
-                              <div className="flex items-center text-sm text-muted-foreground mt-1">
-                                <span>{interview.company}</span>
-                                <span className="mx-2">•</span>
-                                <span>{interview.date}</span>
-                                <span className="mx-2">•</span>
-                                <span>{interview.questionCount} questions</span>
+                      <h3 className="text-lg font-medium mb-4">Interview Results</h3>
+                      {resultsLoading ? (
+                        <div className="flex justify-center py-8">
+                          <Spinner size={8} className="text-primary" />
+                        </div>
+                      ) : testResults.length > 0 ? (
+                        <div className="space-y-4">
+                          {testResults.map(result => (
+                            <div key={result.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                              <div className="mb-4 md:mb-0">
+                                <h4 className="font-medium">Interview Result</h4>
+                                <div className="flex items-center text-sm text-muted-foreground mt-1">
+                                  <span>Date: {new Date(result.created_at).toLocaleDateString()}</span>
+                                  {result.sentiment_analysis && (
+                                    <>
+                                      <span className="mx-2">•</span>
+                                      <span>Sentiment: {result.sentiment_analysis}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-4">
+                                <div className="text-right">
+                                  <div className="text-sm text-muted-foreground mb-1">Score</div>
+                                  <div className="text-lg font-semibold">{result.total_score}%</div>
+                                </div>
+                                <Button variant="outline" size="sm">
+                                  View Report
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-4">
-                              <div className="text-right">
-                                <div className="text-sm text-muted-foreground mb-1">Score</div>
-                                <div className="text-lg font-semibold">{interview.score}%</div>
-                              </div>
-                              <Button variant="outline" size="sm">
-                                View Report
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No test results yet. Take a test to see your performance!</p>
+                          <Button className="mt-4" onClick={() => navigate('/index')}>
+                            Start a New Interview
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div>

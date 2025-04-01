@@ -36,6 +36,36 @@ export type Database = {
         }
         Relationships: []
       }
+      test_results: {
+        Row: {
+          ats_score: number | null
+          created_at: string
+          feedback: string | null
+          id: string
+          sentiment_analysis: string | null
+          total_score: number | null
+          user_id: string
+        }
+        Insert: {
+          ats_score?: number | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          sentiment_analysis?: string | null
+          total_score?: number | null
+          user_id: string
+        }
+        Update: {
+          ats_score?: number | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          sentiment_analysis?: string | null
+          total_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
