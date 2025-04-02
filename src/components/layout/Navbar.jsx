@@ -2,14 +2,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Container from './Container';
-import SignInButton from '../auth/SignInButton';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { UserIcon, LogOutIcon } from 'lucide-react';
+import { useAuthActions } from '@/hooks/useAuthActions';
 
 const Navbar = () => {
   const { user } = useAuth();
+  const { handleLogout } = useAuthActions();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass animate-fade-in">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
       <Container>
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
@@ -32,7 +35,34 @@ const Navbar = () => {
             <span className="text-lg font-medium">PrepMind</span>
           </Link>
           
-          <SignInButton />
+          <div className="flex items-center gap-4">
+            {user ? (
+              <div className="flex items-center gap-4">
+                <Link to="/dashboard" className="flex items-center gap-2">
+                  <UserIcon className="h-4 w-4" />
+                  <span className="hidden md:inline">{user.name}</span>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleLogout()}
+                  className="flex items-center gap-2"
+                >
+                  <LogOutIcon className="h-4 w-4" />
+                  <span className="hidden md:inline">Sign out</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">Sign in</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm">Sign up</Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </Container>
     </header>
