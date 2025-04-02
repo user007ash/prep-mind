@@ -36,6 +36,16 @@ const Navbar = () => {
             <span className="text-lg font-medium">PrepMind</span>
           </Link>
           
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">Home</Link>
+            <Link to="/about" className="text-sm font-medium hover:text-primary transition-colors">About Us</Link>
+            {user ? (
+              <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Dashboard</Link>
+            ) : (
+              <Link to="/login" className="text-sm font-medium hover:text-primary transition-colors">Login/Signup</Link>
+            )}
+          </div>
+          
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-4">

@@ -22,9 +22,13 @@ const ProtectedRoute = ({ children }) => {
     // Try to refresh the session if we're not loading and don't have a user
     if (!loading && !user) {
       const tryRefresh = async () => {
-        const { success } = await refreshSession();
-        if (!success) {
-          console.log("Session refresh failed or no session exists");
+        try {
+          const { success } = await refreshSession();
+          if (!success) {
+            console.log("Session refresh failed or no session exists");
+          }
+        } catch (error) {
+          console.error("Error refreshing session:", error);
         }
       };
       

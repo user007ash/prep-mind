@@ -1,46 +1,14 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import Button from '../components/ui/Button';
+import Navbar from '@/components/layout/Navbar';
 
 const About = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950">
-      {/* Navigation */}
-      <nav className="fixed w-full z-10 backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-b border-gray-200 dark:border-gray-800">
-        <Container className="flex items-center justify-between py-4">
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="w-4 h-4 text-primary"
-              >
-                <path d="M12 2a5 5 0 0 1 5 5v14a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5Z"/>
-                <path d="M2 12h4"/>
-                <path d="M18 12h4"/>
-              </svg>
-            </div>
-            <span className="text-xl font-bold">PrepMind</span>
-          </div>
-          
-          <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">Home</Link>
-            <Link to="/about" className="text-sm font-medium text-primary">About Us</Link>
-            <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Login/Signup</Link>
-          </div>
-          
-          <Link to="/index">
-            <Button>Get Started</Button>
-          </Link>
-        </Container>
-      </nav>
+      {/* Use the shared Navbar component */}
+      <Navbar />
       
       {/* Hero Section */}
       <section className="pt-32 pb-20">
