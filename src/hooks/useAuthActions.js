@@ -39,17 +39,17 @@ export const useAuthActions = () => {
     }
   };
   
-  const handleSignup = async (email, password, fullName, redirectPath = '/login') => {
+  const handleSignup = async (email, password, fullName, redirectPath = '/dashboard') => {
     try {
       const result = await signup(email, password, fullName);
       
       if (result.success) {
         toast({
           title: "Account created successfully",
-          description: "Please check your email to verify your account.",
+          description: "You can now log in with your credentials.",
         });
         
-        navigate(redirectPath, { state: { email } });
+        navigate(redirectPath);
         return { success: true };
       } else {
         return { 

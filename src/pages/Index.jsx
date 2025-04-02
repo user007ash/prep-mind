@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import Navbar from '../components/layout/Navbar';
 import ResumeUpload from '../components/resume/ResumeUpload';
@@ -7,6 +8,7 @@ import ATSScore from '../components/resume/ATSScore';
 import InterviewQuestions from '../components/interview/InterviewQuestions';
 import FeedbackSection from '../components/interview/FeedbackSection';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 // Import AI utilities
 import { analyzeResume, generateInterviewQuestions, analyzeInterviewAnswers } from '../utils/aiService';
@@ -18,6 +20,16 @@ const Index = () => {
   const [atsScore, setAtsScore] = useState(null);
   const [interviewQuestions, setInterviewQuestions] = useState([]);
   const [feedback, setFeedback] = useState(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!user) {
+      toast.info("Please sign in to continue");
+      navigate('/login', { state: { from: '/index' } });
+    }
+  }, [user, navigate]);
 
   const handleResumeProcessed = async (data) => {
     if (!data) {
@@ -131,6 +143,10 @@ const Index = () => {
         return null;
     }
   };
+
+  if (!user) {
+    return null; // Don't render anything while redirecting
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950">

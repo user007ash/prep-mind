@@ -1,12 +1,12 @@
 
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from 'react';
 import Spinner from '../ui/Spinner';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshSession } = useAuth();
   const location = useLocation();
   const { toast } = useToast();
   
@@ -18,7 +18,19 @@ const ProtectedRoute = ({ children }) => {
         variant: "destructive",
       });
     }
-  }, [loading, user, toast]);
+    
+    // Try to refresh the session if we're not loading and don't have a user
+    if (!loading && !user) {
+      const tryRefresh = async () => {
+        const { success } = await refreshSession();
+        if (!success) {
+          console.log("Session refresh failed or no session exists");
+        }
+      };
+      
+      tryRefresh();
+    }
+  }, [loading, user, toast, refreshSession]);
 
   if (loading) {
     return (
@@ -32,8 +44,8 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!user) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Save the current location they were trying to go to
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   return children;

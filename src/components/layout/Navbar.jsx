@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Container from './Container';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { useAuthActions } from '@/hooks/useAuthActions';
 const Navbar = () => {
   const { user } = useAuth();
   const { handleLogout } = useAuthActions();
+  const navigate = useNavigate();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
@@ -38,10 +39,15 @@ const Navbar = () => {
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-4">
-                <Link to="/dashboard" className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center gap-2"
+                >
                   <UserIcon className="h-4 w-4" />
-                  <span className="hidden md:inline">{user.name}</span>
-                </Link>
+                  <span className="hidden md:inline">Dashboard</span>
+                </Button>
                 <Button 
                   variant="outline" 
                   size="sm"

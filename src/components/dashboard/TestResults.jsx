@@ -44,9 +44,9 @@ const TestResultsList = ({ activeTab, testResults, resultsLoading }) => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No test results yet. Take a test to see your performance!</p>
-            <Button className="mt-4" onClick={() => navigate('/upload-resume')}>
+          <div className="text-center py-8 text-muted-foreground bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+            <p className="mb-4">No interview results yet. Take your first interview to see your performance!</p>
+            <Button onClick={() => navigate('/index')}>
               Start a New Interview
             </Button>
           </div>
@@ -59,6 +59,7 @@ const TestResultsList = ({ activeTab, testResults, resultsLoading }) => {
 };
 
 const ResumeResults = () => {
+  const navigate = useNavigate();
   const mockResumes = [
     { id: 1, name: "Software_Engineer_Resume.pdf", uploadDate: "2023-05-15", atsScore: 82 },
     { id: 2, name: "Frontend_Developer.pdf", uploadDate: "2023-07-22", atsScore: 76 },
@@ -68,27 +69,36 @@ const ResumeResults = () => {
   return (
     <div>
       <h3 className="text-lg font-medium mb-4">Your Resumes</h3>
-      <div className="space-y-4">
-        {mockResumes.map(resume => (
-          <div key={resume.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <div className="mb-4 md:mb-0">
-              <h4 className="font-medium">{resume.name}</h4>
-              <div className="text-sm text-muted-foreground mt-1">
-                Uploaded on {resume.uploadDate}
+      {mockResumes.length > 0 ? (
+        <div className="space-y-4">
+          {mockResumes.map(resume => (
+            <div key={resume.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <div className="mb-4 md:mb-0">
+                <h4 className="font-medium">{resume.name}</h4>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Uploaded on {resume.uploadDate}
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <div className="text-sm text-muted-foreground mb-1">ATS Score</div>
+                  <div className="text-lg font-semibold">{resume.atsScore}%</div>
+                </div>
+                <Button variant="outline" size="sm">
+                  View Details
+                </Button>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="text-sm text-muted-foreground mb-1">ATS Score</div>
-                <div className="text-lg font-semibold">{resume.atsScore}%</div>
-              </div>
-              <Button variant="outline" size="sm">
-                View Details
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+          <p className="mb-4">You haven't uploaded any resumes yet. Upload your first resume to see its ATS score!</p>
+          <Button onClick={() => navigate('/index')}>
+            Upload a Resume
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

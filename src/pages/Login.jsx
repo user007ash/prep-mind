@@ -11,10 +11,10 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from || '/dashboard';
 
   useEffect(() => {
-    // If user is already logged in, redirect to the dashboard
+    // If user is already logged in, redirect to the intended page
     if (user) {
       navigate(from);
     }
@@ -33,7 +33,7 @@ const Login = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <LoginForm />
+              <LoginForm redirectPath={from} />
             </CardContent>
             <CardFooter className="flex flex-col">
               <p className="text-center text-sm text-muted-foreground mt-2">

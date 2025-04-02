@@ -9,17 +9,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import PasswordInput from './PasswordInput';
 import Spinner from '../ui/Spinner';
 import { useFormValidation } from '@/hooks/useFormValidation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthActions } from '@/hooks/useAuthActions';
 import { useToast } from '@/hooks/use-toast';
 
-const LoginForm = () => {
-  const location = useLocation();
+const LoginForm = ({ redirectPath = '/dashboard' }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { handleLogin } = useAuthActions();
   const { toast } = useToast();
-  
-  const from = location.state?.from?.pathname || '/dashboard';
   
   const validateForm = (values) => {
     const errors = {};
@@ -60,11 +58,9 @@ const LoginForm = () => {
     setErrors({ ...errors, general: '' });
     
     try {
-      const result = await login(values.email, values.password);
+      const result = await handleLogin(values.email, values.password, redirectPath);
       
-      if (result.success) {
-        navigate(from);
-      } else {
+      if (!result.success) {
         setErrors({
           ...errors,
           general: result.message || "Invalid email or password"

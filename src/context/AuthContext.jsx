@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,18 +11,25 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Extract user info from session user
+  const formatUserData = useCallback((sessionUser) => {
+    if (!sessionUser) return null;
+    
+    return {
+      id: sessionUser.id,
+      email: sessionUser.email,
+      name: sessionUser.user_metadata?.full_name || sessionUser.email?.split('@')[0] || 'User',
+      role: 'user'
+    };
+  }, []);
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth state changed:', event);
         setSession(currentSession);
-        setUser(currentSession?.user ? {
-          id: currentSession.user.id,
-          email: currentSession.user.email,
-          name: currentSession.user.user_metadata?.full_name || currentSession.user.email?.split('@')[0] || 'User',
-          role: 'user'
-        } : null);
+        setUser(currentSession?.user ? formatUserData(currentSession.user) : null);
 
         // Handle specific auth events with toast notifications
         if (event === 'SIGNED_IN') {
@@ -34,6 +41,11 @@ export const AuthProvider = ({ children }) => {
           toast({
             title: "Logged out successfully",
           });
+        } else if (event === 'USER_UPDATED') {
+          toast({
+            title: "Profile updated",
+            description: "Your profile information has been updated.",
+          });
         }
       }
     );
@@ -41,19 +53,14 @@ export const AuthProvider = ({ children }) => {
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
-      setUser(currentSession?.user ? {
-        id: currentSession.user.id,
-        email: currentSession.user.email,
-        name: currentSession.user.user_metadata?.full_name || currentSession.user.email?.split('@')[0] || 'User',
-        role: 'user'
-      } : null);
+      setUser(currentSession?.user ? formatUserData(currentSession.user) : null);
       setLoading(false);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [toast, formatUserData]);
 
   const login = async (email, password) => {
     try {
@@ -73,6 +80,7 @@ export const AuthProvider = ({ children }) => {
         message: "Login failed. Please try again." 
       };
     } catch (error) {
+      console.error("Login error:", error);
       return { 
         success: false, 
         message: error.message || 'Login failed' 
@@ -107,6 +115,7 @@ export const AuthProvider = ({ children }) => {
         message: "Signup failed. Please try again." 
       };
     } catch (error) {
+      console.error("Signup error:", error);
       return { 
         success: false, 
         message: error.message || 'Signup failed' 
@@ -128,6 +137,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshSession = async () => {
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.error("Session refresh error:", error);
+        return { success: false };
+      }
+      return { success: true, session: data.session };
+    } catch (error) {
+      console.error("Session refresh error:", error);
+      return { success: false };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -136,6 +159,7 @@ export const AuthProvider = ({ children }) => {
       logout, 
       signup, 
       loading,
+      refreshSession,
       isAuthenticated: !!user
     }}>
       {children}
