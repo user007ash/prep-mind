@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Container from '../components/layout/Container';
@@ -12,8 +11,12 @@ import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-// Import AI utilities
-import { analyzeResume, generateInterviewQuestions, analyzeInterviewAnswers } from '../utils/aiService';
+// Import AI utilities from the new modular structure
+import {
+  analyzeResume,
+  generateInterviewQuestions,
+  analyzeInterviewAnswers
+} from '../utils/ai';
 
 const Index = () => {
   const [step, setStep] = useState('upload'); // upload, analysis, interview, processing, feedback
