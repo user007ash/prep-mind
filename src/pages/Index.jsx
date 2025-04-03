@@ -7,19 +7,29 @@ import ResumeUpload from '../components/resume/ResumeUpload';
 import ATSScore from '../components/resume/ATSScore';
 import InterviewQuestions from '../components/interview/InterviewQuestions';
 import FeedbackSection from '../components/interview/FeedbackSection';
+import ProcessingResults from '../components/interview/ProcessingResults';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 // Import AI utilities
 import { analyzeResume, generateInterviewQuestions, analyzeInterviewAnswers } from '../utils/aiService';
 
 const Index = () => {
-  const [step, setStep] = useState('upload'); // upload, analysis, interview, feedback
+  const [step, setStep] = useState('upload'); // upload, analysis, interview, processing, feedback
   const [loading, setLoading] = useState(false);
   const [resumeData, setResumeData] = useState(null);
   const [atsScore, setAtsScore] = useState(null);
   const [interviewQuestions, setInterviewQuestions] = useState([]);
   const [feedback, setFeedback] = useState(null);
+  const [processingStep, setProcessingStep] = useState(1);
+  const totalProcessingSteps = 3;
+  const processingStepDescriptions = [
+    "Transcribing your answers...",
+    "Analyzing response quality and content...",
+    "Generating personalized feedback..."
+  ];
+  
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -79,23 +89,70 @@ const Index = () => {
     }
     
     try {
-      setLoading(true);
+      setStep('processing');
+      setProcessingStep(1);
       
-      // Analyze interview answers
-      const result = await analyzeInterviewAnswers(interviewQuestions, answers);
+      // Simulate processing steps with timeouts
+      const processStepWithDelay = async () => {
+        // Step 1: Transcribe (already done in real-time)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setProcessingStep(2);
+        
+        // Step 2: Analyze responses
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        setProcessingStep(3);
+        
+        // Step 3: Generate feedback
+        const result = await analyzeInterviewAnswers(interviewQuestions, answers);
+        
+        if (!result || typeof result.overallScore !== 'number') {
+          throw new Error("Failed to analyze interview responses.");
+        }
+        
+        // Save results to Supabase
+        if (user) {
+          try {
+            // Insert the test result into the database
+            const { error } = await supabase
+              .from('test_results')
+              .insert({
+                user_id: user.id,
+                ats_score: atsScore,
+                total_score: result.overallScore,
+                sentiment_analysis: result.communicationFeedback?.tone || "Professional",
+                feedback: JSON.stringify(result)
+              });
+            
+            if (error) throw error;
+            
+            toast.success("Your results have been saved!");
+          } catch (saveError) {
+            console.error("Error saving test results:", saveError);
+            toast.error("Failed to save your results, but you can still view your feedback.");
+          }
+        }
+        
+        setFeedback(result);
+        setStep('feedback');
+      };
       
-      if (!result || typeof result.overallScore !== 'number') {
-        throw new Error("Failed to analyze interview responses.");
-      }
-      
-      setFeedback(result);
-      setStep('feedback');
+      processStepWithDelay();
     } catch (error) {
       console.error("Error analyzing interview:", error);
       toast.error(error.message || "An error occurred while analyzing your interview. Please try again.");
-    } finally {
-      setLoading(false);
+      setStep('interview');
     }
+  };
+
+  const handleFinishReview = () => {
+    // Navigate to dashboard with state to trigger refresh
+    navigate('/dashboard', { 
+      state: { 
+        testCompleted: true,
+        testScore: feedback?.overallScore,
+        atsScore: atsScore
+      } 
+    });
   };
 
   const renderCurrentStep = () => {
@@ -132,12 +189,34 @@ const Index = () => {
             onComplete={handleInterviewComplete} 
           />
         );
+      case 'processing':
+        return (
+          <ProcessingResults 
+            currentStep={processingStep}
+            totalSteps={totalProcessingSteps}
+            stepDescription={processingStepDescriptions[processingStep - 1]}
+          />
+        );
       case 'feedback':
         return feedback ? (
-          <FeedbackSection 
-            feedback={feedback} 
-            score={feedback.overallScore} 
-          />
+          <div className="space-y-6">
+            <FeedbackSection 
+              feedback={feedback} 
+              score={feedback.overallScore} 
+            />
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={handleFinishReview}
+                className="bg-primary hover:bg-primary/90 text-white py-2.5 px-6 rounded-md transition-colors font-medium flex items-center space-x-2"
+              >
+                <span>View All Results on Dashboard</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
         ) : null;
       default:
         return null;

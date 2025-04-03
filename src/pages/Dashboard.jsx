@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -17,7 +16,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { testResults, loading: resultsLoading } = useTestResults(user);
+  const { testResults, loading: resultsLoading, refreshResults } = useTestResults(user);
   const [loading, setLoading] = useState(true);
 
   // Effect to check if we just completed a test (coming from interview page)
@@ -26,10 +25,16 @@ const Dashboard = () => {
     
     if (justCompletedTest) {
       toast.success("Test results saved successfully!");
+      
+      // If the results don't appear immediately, refresh them
+      setTimeout(() => {
+        refreshResults();
+      }, 1000);
+      
       // Clear the location state
       window.history.replaceState({}, document.title);
     }
-  }, [location]);
+  }, [location, refreshResults]);
 
   useEffect(() => {
     if (user) {

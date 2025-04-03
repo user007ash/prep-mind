@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -7,29 +7,34 @@ const useTestResults = (user) => {
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTestResults = async () => {
-      if (!user) return;
+  const fetchTestResults = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('test_results')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
       
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('test_results')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        
-        setTestResults(data || []);
-      } catch (error) {
-        console.error("Error fetching test results:", error);
-        toast.error("Failed to load your test results");
-      } finally {
-        setLoading(false);
-      }
-    };
+      if (error) throw error;
+      
+      setTestResults(data || []);
+    } catch (error) {
+      console.error("Error fetching test results:", error);
+      toast.error("Failed to load your test results");
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
+  // Function to manually refresh results
+  const refreshResults = useCallback(() => {
+    fetchTestResults();
+  }, [fetchTestResults]);
+
+  useEffect(() => {
     if (user) {
       fetchTestResults();
     }
@@ -58,9 +63,9 @@ const useTestResults = (user) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, fetchTestResults]);
 
-  return { testResults, loading };
+  return { testResults, loading, refreshResults };
 };
 
 export default useTestResults;
