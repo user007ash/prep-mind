@@ -1,19 +1,20 @@
+
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Container from './Container';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { UserIcon, LogOutIcon } from 'lucide-react';
+import { LogOutIcon } from 'lucide-react';
 import { useAuthActions } from '@/hooks/useAuthActions';
+
 const Navbar = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    handleLogout
-  } = useAuthActions();
+  const { user, isAuthenticated } = useAuth();
+  const { handleLogout } = useAuthActions();
   const navigate = useNavigate();
-  return <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+  const location = useLocation();
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
       <Container>
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
@@ -30,27 +31,38 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">Home</Link>
             <Link to="/about" className="text-sm font-medium hover:text-primary transition-colors">About Us</Link>
-            {user ? <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Dashboard</Link> : <Link to="/login" className="text-sm font-medium hover:text-primary transition-colors">Login/Signup</Link>}
+            {isAuthenticated ? 
+              <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Dashboard</Link> : 
+              <Link to="/login" className="text-sm font-medium hover:text-primary transition-colors">Login/Signup</Link>
+            }
           </div>
           
           <div className="flex items-center gap-4">
-            {user ? <div className="flex items-center gap-4">
-                
-                <Button variant="outline" size="sm" onClick={() => handleLogout()} className="flex items-center gap-2">
-                  <LogOutIcon className="h-4 w-4" />
-                  <span className="hidden md:inline">Sign out</span>
-                </Button>
-              </div> : <div className="flex items-center gap-2">
+            {isAuthenticated ? (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleLogout('/')} 
+                className="flex items-center gap-2"
+              >
+                <LogOutIcon className="h-4 w-4" />
+                <span className="hidden md:inline">Sign out</span>
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
                 <Link to="/login">
                   <Button variant="ghost" size="sm">Sign in</Button>
                 </Link>
                 <Link to="/signup">
                   <Button size="sm">Sign up</Button>
                 </Link>
-              </div>}
+              </div>
+            )}
           </div>
         </div>
       </Container>
-    </header>;
+    </header>
+  );
 };
+
 export default Navbar;

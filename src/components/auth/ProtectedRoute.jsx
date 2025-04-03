@@ -6,26 +6,23 @@ import { useToast } from "@/hooks/use-toast";
 import Spinner from '../ui/Spinner';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, loading, refreshSession } = useAuth();
+  const { user, loading, isAuthenticated, refreshSession } = useAuth();
   const location = useLocation();
   const { toast } = useToast();
   
   useEffect(() => {
-    if (!loading && !user) {
-      toast({
-        title: "Authentication required",
-        description: "You need to log in to access this feature.",
-        variant: "destructive",
-      });
-    }
-    
-    // Try to refresh the session if we're not loading and don't have a user
-    if (!loading && !user) {
+    // Only attempt to refresh if we're not loading and not authenticated
+    if (!loading && !isAuthenticated) {
       const tryRefresh = async () => {
         try {
           const { success } = await refreshSession();
           if (!success) {
-            console.log("Session refresh failed or no session exists");
+            // Only show toast if refresh actually failed (not on initial load)
+            toast({
+              title: "Authentication required",
+              description: "You need to log in to access this feature.",
+              variant: "destructive",
+            });
           }
         } catch (error) {
           console.error("Error refreshing session:", error);
@@ -34,7 +31,7 @@ const ProtectedRoute = ({ children }) => {
       
       tryRefresh();
     }
-  }, [loading, user, toast, refreshSession]);
+  }, [loading, isAuthenticated, toast, refreshSession]);
 
   if (loading) {
     return (
@@ -47,7 +44,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     // Save the current location they were trying to go to
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }

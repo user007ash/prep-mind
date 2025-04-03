@@ -1,5 +1,5 @@
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from './use-toast';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,10 +9,11 @@ import { useAuth } from '../context/AuthContext';
  */
 export const useAuthActions = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
-  const { login, signup, logout, user } = useAuth();
+  const { login, signup, logout, user, isAuthenticated } = useAuth();
   
-  const handleLogin = async (email, password, redirectPath = '/dashboard') => {
+  const handleLogin = async (email, password, redirectPath) => {
     try {
       const result = await login(email, password);
       
@@ -22,7 +23,9 @@ export const useAuthActions = () => {
           description: "Welcome back!",
         });
         
-        navigate(redirectPath);
+        // Get the intended destination from location state, or use provided path
+        const from = location.state?.from || redirectPath || '/dashboard';
+        navigate(from);
         return { success: true };
       } else {
         return { 
@@ -39,7 +42,7 @@ export const useAuthActions = () => {
     }
   };
   
-  const handleSignup = async (email, password, fullName, redirectPath = '/dashboard') => {
+  const handleSignup = async (email, password, fullName, redirectPath) => {
     try {
       const result = await signup(email, password, fullName);
       
@@ -49,7 +52,9 @@ export const useAuthActions = () => {
           description: "You can now log in with your credentials.",
         });
         
-        navigate(redirectPath);
+        // Get the intended destination from location state, or use provided path
+        const from = location.state?.from || redirectPath || '/dashboard';
+        navigate(from);
         return { success: true };
       } else {
         return { 
@@ -68,9 +73,16 @@ export const useAuthActions = () => {
   
   const handleLogout = async (redirectPath = '/') => {
     try {
-      await logout();
-      navigate(redirectPath);
-      return { success: true };
+      const result = await logout();
+      if (result.success) {
+        navigate(redirectPath);
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          message: result.message || "Logout failed" 
+        };
+      }
     } catch (error) {
       console.error("Logout error:", error);
       return { 
@@ -84,6 +96,6 @@ export const useAuthActions = () => {
     handleLogin,
     handleSignup,
     handleLogout,
-    isAuthenticated: !!user
+    isAuthenticated
   };
 };
