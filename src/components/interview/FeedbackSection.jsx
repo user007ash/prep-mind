@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../ui/Card';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
 import Button from '../ui/Button';
 import FeedbackHeader from './feedback/FeedbackHeader';
 import FeedbackTabs from './feedback/FeedbackTabs';
