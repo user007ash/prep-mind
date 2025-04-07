@@ -75,7 +75,7 @@ const useInterviewProcess = (user) => {
 
   const handleInterviewComplete = async (answers) => {
     if (!answers || Object.keys(answers).length === 0) {
-      toast.error("No answers provided. Please complete the interview.");
+      toast.error("No answers provided. Please answer at least one question before submitting.");
       return;
     }
     
@@ -103,6 +103,9 @@ const useInterviewProcess = (user) => {
         // Save results to Supabase
         if (user) {
           try {
+            // Calculate completion percentage
+            const completionPercentage = Math.round((Object.keys(answers).length / interviewQuestions.length) * 100);
+            
             // Insert the test result into the database
             const { error } = await supabase
               .from('test_results')
@@ -111,12 +114,20 @@ const useInterviewProcess = (user) => {
                 ats_score: atsScore,
                 total_score: result.overallScore,
                 sentiment_analysis: result.communicationFeedback?.tone || "Professional",
-                feedback: JSON.stringify(result)
+                feedback: JSON.stringify({
+                  ...result,
+                  completionRate: completionPercentage,
+                  skippedQuestions: interviewQuestions.length - Object.keys(answers).length
+                })
               });
             
             if (error) throw error;
             
-            toast.success("Your results have been saved!");
+            if (completionPercentage < 100) {
+              toast.success(`Results saved! You completed ${completionPercentage}% of questions.`);
+            } else {
+              toast.success("Your results have been saved!");
+            }
           } catch (saveError) {
             console.error("Error saving test results:", saveError);
             toast.error("Failed to save your results, but you can still view your feedback.");
