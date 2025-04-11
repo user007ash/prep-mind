@@ -52,6 +52,8 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
         throw new Error('Resume parsing failed. Please try another file.');
       }
       
+      console.log("Resume parsed successfully:", parsedData);
+      
       // Check for missing elements and provide feedback
       if (parsedData.completenessScore < 75 && parsedData.missingElements && parsedData.missingElements.length > 0) {
         const missingParts = parsedData.missingElements.join(', ');

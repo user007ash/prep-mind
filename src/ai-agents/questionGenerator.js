@@ -43,13 +43,12 @@ const generateTailoredQuestions = (resumeData) => {
   const technicalQuestions = [];
   
   // Only add these if resumeData contains skills
-  if (resumeData && resumeData.keySkills) {
+  if (resumeData && resumeData.skills) {
+    const keySkills = Array.isArray(resumeData.skills) ? resumeData.skills : resumeData.keySkills || [];
+    
     // JavaScript/Frontend questions
-    if (resumeData.keySkills.includes("JavaScript") || 
-        resumeData.keySkills.includes("TypeScript") ||
-        resumeData.keySkills.includes("React") || 
-        resumeData.keySkills.includes("Angular") ||
-        resumeData.keySkills.includes("Vue")) {
+    if (keySkills.some(skill => 
+        /JavaScript|TypeScript|React|Angular|Vue/i.test(skill))) {
       
       const frontendQuestions = [
         "Explain the difference between let, const, and var in JavaScript.",
@@ -65,11 +64,8 @@ const generateTailoredQuestions = (resumeData) => {
     }
     
     // Backend questions
-    if (resumeData.keySkills.includes("Node.js") || 
-        resumeData.keySkills.includes("Express") ||
-        resumeData.keySkills.includes("Django") ||
-        resumeData.keySkills.includes("Flask") ||
-        resumeData.keySkills.includes("Spring")) {
+    if (keySkills.some(skill => 
+        /Node\.js|Express|Django|Flask|Spring|API|Backend/i.test(skill))) {
       
       const backendQuestions = [
         "Describe your experience building RESTful APIs.",
@@ -84,10 +80,8 @@ const generateTailoredQuestions = (resumeData) => {
     }
     
     // Database questions
-    if (resumeData.keySkills.includes("SQL") || 
-        resumeData.keySkills.includes("MongoDB") ||
-        resumeData.keySkills.includes("PostgreSQL") ||
-        resumeData.keySkills.includes("MySQL")) {
+    if (keySkills.some(skill => 
+        /SQL|MongoDB|PostgreSQL|MySQL|Database/i.test(skill))) {
       
       const dbQuestions = [
         "Compare SQL and NoSQL databases. When would you choose one over the other?",
@@ -101,11 +95,8 @@ const generateTailoredQuestions = (resumeData) => {
     }
     
     // Cloud/DevOps questions
-    if (resumeData.keySkills.includes("AWS") || 
-        resumeData.keySkills.includes("Azure") ||
-        resumeData.keySkills.includes("Google Cloud") ||
-        resumeData.keySkills.includes("Docker") ||
-        resumeData.keySkills.includes("Kubernetes")) {
+    if (keySkills.some(skill => 
+        /AWS|Azure|Google Cloud|Docker|Kubernetes|DevOps|CI\/CD/i.test(skill))) {
       
       const devopsQuestions = [
         "Describe your experience with cloud infrastructure and deployment.",
@@ -121,7 +112,32 @@ const generateTailoredQuestions = (resumeData) => {
   }
   
   // Experience-based questions
-  const experienceQuestions = [
+  const experienceQuestions = [];
+  
+  // Add experience-specific questions if available
+  if (resumeData && resumeData.experience && resumeData.experience.length > 0) {
+    // Get the most recent job experience
+    const recentJob = resumeData.experience[0];
+    experienceQuestions.push(
+      `Tell me about your experience as a ${recentJob.title} at ${recentJob.company}.`,
+      `What were your key achievements at ${recentJob.company}?`
+    );
+  }
+  
+  // Project-based questions
+  const projectQuestions = [];
+  
+  // Add project-specific questions if available
+  if (resumeData && resumeData.projects && resumeData.projects.length > 0) {
+    const project = resumeData.projects[0];
+    projectQuestions.push(
+      `Tell me about the ${project.name} project. What technologies did you use and what challenges did you face?`,
+      `What was your specific contribution to the ${project.name} project?`
+    );
+  }
+  
+  // General behavioral questions
+  const behavioralQuestions = [
     "Describe a challenging project you worked on and how you overcame obstacles.",
     "How do you approach learning new technologies?",
     "Tell me about a time when you had to meet a tight deadline.",
@@ -135,8 +151,10 @@ const generateTailoredQuestions = (resumeData) => {
   // Combine all questions and limit to 10 total
   const allQuestions = [
     ...baseQuestions.slice(0, 3), // Always include first 3 base questions
-    ...technicalQuestions,
-    ...experienceQuestions
+    ...experienceQuestions.slice(0, 2), // Up to 2 experience-specific questions
+    ...projectQuestions.slice(0, 2), // Up to 2 project-specific questions
+    ...technicalQuestions.slice(0, 3), // Up to 3 technical questions
+    ...behavioralQuestions // Fill remaining slots with behavioral questions
   ];
   
   // Shuffle and return 10 questions

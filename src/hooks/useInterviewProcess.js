@@ -59,6 +59,7 @@ const useInterviewProcess = (user) => {
         throw new Error("Failed to generate interview questions.");
       }
       
+      console.log("Generated interview questions:", questions);
       setInterviewQuestions(questions);
       setStep('analysis');
     } catch (error) {
@@ -70,6 +71,24 @@ const useInterviewProcess = (user) => {
   };
 
   const handleStartInterview = () => {
+    if (interviewQuestions.length === 0) {
+      // Generate fallback questions if none were generated
+      const fallbackQuestions = [
+        "Tell me about yourself and your background.",
+        "What are your greatest professional strengths?",
+        "What do you consider to be your weaknesses?",
+        "Why are you interested in this position?",
+        "Where do you see yourself in 5 years?",
+        "What is your greatest professional achievement?",
+        "Describe a difficult work situation and how you overcame it.",
+        "How do you handle work pressure and tight deadlines?",
+        "What's your approach to working in a team?",
+        "Do you have any questions for me?"
+      ];
+      setInterviewQuestions(fallbackQuestions);
+      toast.info("Using general interview questions.");
+    }
+    
     setStep('interview');
   };
 

@@ -1,9 +1,10 @@
+
 // Main export file for AI services
 import { analyzeResume as _analyzeResume } from './resumeAnalysis';
 import { generateInterviewQuestions as _generateInterviewQuestions } from './questionGeneration';
 import { analyzeInterviewAnswers } from './answerAnalysis';
 
-// Import our enhanced AI agents
+// Import our AI agents
 import { parseResume, generateInterviewQuestions as aiGenerateQuestions } from '@/ai-agents';
 
 // Enhanced resume analysis that uses our AI agent
@@ -59,17 +60,17 @@ export const generateInterviewQuestions = async (resumeData) => {
       return aiQuestions;
     }
     
-    console.log("AI agent didn't generate enough questions, falling back to existing implementation");
+    console.log("AI agent didn't generate enough questions, falling back to enhanced implementation");
     
-    // Otherwise fall back to the existing implementation
+    // Fall back to the enhanced implementation
     return _generateInterviewQuestions(resumeData);
   } catch (error) {
     console.error("Error in AI augmented question generation:", error);
     // Log detailed error for debugging
     console.log("Error details:", error.message);
     
-    // Fall back to the original implementation
-    console.log("Falling back to existing question generation implementation");
+    // Fall back to the enhanced implementation
+    console.log("Falling back to enhanced question generation implementation");
     return _generateInterviewQuestions(resumeData);
   }
 };
