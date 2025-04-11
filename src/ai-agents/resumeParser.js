@@ -14,7 +14,6 @@ import { generateDetailedAnalysis } from './utils/resumeAnalysis';
 export const parseResume = async (resumeData) => {
   try {
     // In a real implementation, this would call Groq Cloud or another LLM API
-    // For now, we'll use a placeholder implementation
     console.log("Parsing resume with AI agent:", resumeData);
     
     // If we have a file object, extract text content
