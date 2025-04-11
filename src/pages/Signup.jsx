@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +11,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signup, user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = React.useState(false);
 
   useEffect(() => {
     // If user is already logged in, redirect to the dashboard

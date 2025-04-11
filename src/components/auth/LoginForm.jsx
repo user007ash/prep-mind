@@ -1,76 +1,64 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { UserIcon } from 'lucide-react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { UserIcon, LockIcon } from 'lucide-react';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import PasswordInput from './PasswordInput';
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import Spinner from '../ui/Spinner';
-import { useFormValidation } from '@/hooks/useFormValidation';
 import { useAuthActions } from '@/hooks/useAuthActions';
 import { useToast } from '@/hooks/use-toast';
 
+const loginSchema = z.object({
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  password: z.string().min(1, {
+    message: "Password is required.",
+  }),
+  rememberMe: z.boolean().default(false),
+});
+
 const LoginForm = ({ redirectPath = '/dashboard' }) => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const [loading, setLoading] = useState(false);
   const { handleLogin } = useAuthActions();
   const { toast } = useToast();
   
-  const validateForm = (values) => {
-    const errors = {};
-    
-    if (!values.email?.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-      errors.email = "Please enter a valid email address";
-    }
-    
-    if (!values.password) {
-      errors.password = "Password is required";
-    }
-    
-    return errors;
-  };
-  
-  const {
-    values,
-    errors,
-    handleChange,
-    validateForm: validate,
-    setErrors
-  } = useFormValidation({
-    email: location.state?.email || '',
-    password: '',
-    rememberMe: false
-  }, validateForm);
+  const form = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: location.state?.email || '',
+      password: '',
+      rememberMe: false,
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validate()) {
-      return;
-    }
-    
-    setLoading(true);
-    setErrors({ ...errors, general: '' });
-    
+  const onSubmit = async (data) => {
     try {
-      const result = await handleLogin(values.email, values.password, redirectPath);
+      const result = await handleLogin(data.email, data.password, redirectPath);
       
       if (!result.success) {
-        setErrors({
-          ...errors,
-          general: result.message || "Invalid email or password"
+        form.setError("root", {
+          type: "manual",
+          message: result.message || "Invalid email or password"
         });
       }
     } catch (error) {
       console.error("Login error:", error);
-      setErrors({
-        ...errors,
-        general: "An unexpected error occurred. Please try again."
+      form.setError("root", {
+        type: "manual", 
+        message: "An unexpected error occurred. Please try again."
       });
       
       toast({
@@ -78,85 +66,100 @@ const LoginForm = ({ redirectPath = '/dashboard' }) => {
         description: "Please check your credentials and try again.",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {errors.general && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-          {errors.general}
-        </div>
-      )}
-      
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <UserIcon className="h-5 w-5 text-muted-foreground" />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {form.formState.errors.root && (
+          <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+            {form.formState.errors.root.message}
           </div>
-          <Input
-            id="email"
-            name="email"
-            type="text"
-            value={values.email}
-            onChange={handleChange}
-            placeholder="name@example.com"
-            className={`pl-10 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
-          />
-        </div>
-        {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
-          <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
-            Forgot password?
-          </Link>
-        </div>
-        <PasswordInput
-          id="password"
-          name="password"
-          value={values.password}
-          onChange={handleChange}
-          hasError={!!errors.password}
-        />
-        {errors.password && <p className="text-destructive text-sm mt-1">{errors.password}</p>}
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <Checkbox 
-          id="rememberMe" 
-          name="rememberMe"
-          checked={values.rememberMe}
-          onCheckedChange={(checked) => 
-            handleChange({
-              target: { name: 'rememberMe', type: 'checkbox', checked }
-            })
-          }
-        />
-        <Label 
-          htmlFor="rememberMe" 
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          Remember me
-        </Label>
-      </div>
-      
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? (
-          <span className="flex items-center justify-center">
-            <Spinner className="-ml-1 mr-3" />
-            Signing in...
-          </span>
-        ) : (
-          "Sign in"
         )}
-      </Button>
-    </form>
+        
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <UserIcon className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <FormControl>
+                  <Input
+                    placeholder="name@example.com"
+                    className="pl-10"
+                    {...field}
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-center justify-between">
+                <FormLabel>Password</FormLabel>
+                <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <LockIcon className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    className="pl-10"
+                    {...field}
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="rememberMe"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Remember me</FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
+        
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? (
+            <span className="flex items-center justify-center">
+              <Spinner className="-ml-1 mr-3" />
+              Signing in...
+            </span>
+          ) : (
+            "Sign in"
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 };
 
