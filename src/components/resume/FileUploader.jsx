@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -40,8 +39,8 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes }) => {
       toast.success('File uploaded successfully');
     } else {
       setFile(null);
-      setError('Please upload a PDF or Word document');
-      toast.error('Please upload a PDF or Word document');
+      setError('Please upload a PDF document');
+      toast.error('Please upload a PDF document');
     }
   };
 
