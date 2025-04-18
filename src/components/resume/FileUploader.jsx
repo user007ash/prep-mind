@@ -1,18 +1,11 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError }) => {
+const FileUploader = ({ file, setFile, onUpload, allowedFileTypes }) => {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
-
-  // Reset input value when file state changes
-  useEffect(() => {
-    if (inputRef.current && !file) {
-      inputRef.current.value = '';
-    }
-  }, [file]);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -37,33 +30,18 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
   const handleChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
-      // Reset input value to ensure the same file can be selected again after an error
-      if (!allowedFileTypes.includes(e.target.files[0].type)) {
-        e.target.value = '';
-      }
     }
   };
 
   const handleFile = (file) => {
     setError('');
-    resetError();
-    
     if (allowedFileTypes.includes(file.type)) {
       setFile(file);
       toast.success('File uploaded successfully');
     } else {
       setFile(null);
-      setError('Please upload a PDF document');
-      toast.error('Please upload a PDF document');
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setFile(null);
-    setError('');
-    resetError();
-    if (inputRef.current) {
-      inputRef.current.value = '';
+      setError('Please upload a PDF or Word document');
+      toast.error('Please upload a PDF or Word document');
     }
   };
 
@@ -87,7 +65,7 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
         ref={inputRef}
         className="hidden"
         type="file"
-        accept=".pdf"
+        accept=".pdf,.doc,.docx"
         onChange={handleChange}
       />
 
@@ -103,7 +81,7 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
           </p>
           <button 
             className="text-xs text-red-500 mt-2"
-            onClick={handleRemoveFile}
+            onClick={() => setFile(null)}
           >
             Remove
           </button>
@@ -126,7 +104,7 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
             browse files
           </button>
           <p className="text-xs text-muted-foreground mt-2">
-            Supports PDF
+            Supports PDF, DOC, DOCX
           </p>
         </div>
       )}
