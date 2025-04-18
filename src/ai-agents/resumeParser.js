@@ -21,10 +21,12 @@ export const parseResume = async (resumeData) => {
     if (resumeData instanceof File) {
       // Read file content if it's a File object
       content = await readFileContent(resumeData);
+      console.log("File content extracted successfully");
     }
     
     // Generate a detailed analysis
     const analysis = generateDetailedAnalysis(content);
+    console.log("Analysis generated successfully");
     
     return analysis;
   } catch (error) {

@@ -1,22 +1,17 @@
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
-import Button from '../ui/Button';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui';
+import { Button } from '../ui';
 import { parseResume } from '../../utils/resumeParser';
 import { toast } from 'sonner';
 import FileUploader from './FileUploader';
+import { Progress } from '../ui';
 
 const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-
-  const allowedFileTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  ];
 
   const handleUpload = async () => {
     if (!file) {
@@ -40,6 +35,8 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
           return newProgress;
         });
       }, 300);
+
+      console.log("Sending file for parsing:", file);
       
       const parsedData = await parseResume(file);
       
@@ -87,8 +84,17 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
           file={file}
           setFile={setFile}
           onUpload={handleUpload}
-          allowedFileTypes={allowedFileTypes}
         />
+        
+        {processing && uploadProgress > 0 && (
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Analyzing resume</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <Progress value={uploadProgress} className="h-2" />
+          </div>
+        )}
       </CardContent>
       <CardFooter className="justify-end">
         <Button

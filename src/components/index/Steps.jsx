@@ -5,7 +5,7 @@ import ATSScore from '../resume/ATSScore';
 import InterviewQuestions from '../interview/InterviewQuestions';
 import ProcessingResults from '../interview/ProcessingResults';
 import FeedbackSection from '../interview/FeedbackSection';
-import { useNavigate } from 'react-router-dom';
+import { Button } from '../ui';
 
 const Steps = ({ 
   step, 
@@ -21,7 +21,6 @@ const Steps = ({
   processingStepDescriptions,
   feedback
 }) => {
-  const navigate = useNavigate();
   
   if (loading) {
     return (
@@ -72,7 +71,7 @@ const Steps = ({
             score={feedback.overallScore} 
           />
           <div className="flex justify-center mt-8">
-            <button
+            <Button
               onClick={handleFinishReview}
               className="bg-primary hover:bg-primary/90 text-white py-2.5 px-6 rounded-md transition-colors font-medium flex items-center space-x-2"
             >
@@ -81,7 +80,7 @@ const Steps = ({
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
-            </button>
+            </Button>
           </div>
         </div>
       ) : null;
