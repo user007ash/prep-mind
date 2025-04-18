@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
 import Button from '../ui/Button';
@@ -13,6 +14,15 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
 
   const allowedFileTypes = ['application/pdf'];
 
+  // Reset all states when a file upload error occurs
+  const handleFileError = (errorMessage) => {
+    setFile(null);
+    setError(errorMessage);
+    setProcessing(false);
+    setUploadProgress(0);
+    toast.error(errorMessage);
+  };
+
   const handleUpload = async () => {
     if (!file) {
       toast.error('Please upload a resume file first');
@@ -20,8 +30,7 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
     }
     
     if (!allowedFileTypes.includes(file.type)) {
-      toast.error('Invalid file format! Please upload your resume in PDF format');
-      setFile(null);
+      handleFileError('Invalid file format! Please upload your resume in PDF format');
       return;
     }
     
@@ -61,9 +70,7 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
       toast.success('Resume analyzed successfully!');
     } catch (error) {
       console.error("Error processing resume:", error);
-      setError(error.message || "Failed to process resume. Please try again.");
-      toast.error(error.message || "Failed to process resume. Please try again.");
-      setFile(null);
+      handleFileError(error.message || "Failed to process resume. Please try again.");
     } finally {
       setProcessing(false);
       setLoading(false);
@@ -85,6 +92,7 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
           setFile={setFile}
           onUpload={handleUpload}
           allowedFileTypes={allowedFileTypes}
+          resetError={() => setError('')}
         />
       </CardContent>
       <CardFooter className="justify-end">

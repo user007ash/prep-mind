@@ -51,25 +51,34 @@ export const parseResume = async (resumeData) => {
         throw new Error('Please upload your resume in PDF format');
       }
       
-      // Read file content
-      content = await readFileContent(resumeData);
-      
-      // Validate content
-      const { isValid, missingElements } = validateResumeContent(content);
-      if (!isValid) {
-        throw new Error(
-          `This doesn't look like a resume. Please ensure your file includes sections for: ${missingElements.join(', ')}`
-        );
+      try {
+        // Read file content
+        content = await readFileContent(resumeData);
+        
+        // Validate content
+        const { isValid, missingElements } = validateResumeContent(content);
+        if (!isValid) {
+          throw new Error(
+            `This doesn't look like a resume. Please ensure your file includes sections for: ${missingElements.join(', ')}`
+          );
+        }
+        
+        // Generate a detailed analysis
+        const analysis = generateDetailedAnalysis(content);
+        
+        return analysis;
+      } catch (error) {
+        console.error("Error reading or validating resume:", error);
+        throw new Error(error.message || "Failed to read or validate resume");
       }
     }
     
-    // Generate a detailed analysis
+    // Handle direct text content case
     const analysis = generateDetailedAnalysis(content);
     
     return analysis;
   } catch (error) {
     console.error("Error in AI resume parsing:", error);
-    throw new Error(error.message || "Failed to parse resume with AI agent");
+    throw error; // Propagate the error to be handled by the caller
   }
 };
-
