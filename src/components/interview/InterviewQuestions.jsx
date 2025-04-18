@@ -19,10 +19,30 @@ const InterviewQuestions = ({ questions, onComplete }) => {
       ...prev,
       [currentQuestion]: {
         answer: transcription,
-        sentiment: sentimentData
+        sentiment: sentimentData,
+        status: 'answered'
       }
     }));
     setIsRecording(false);
+  };
+
+  const handleSkipQuestion = () => {
+    // Mark the current question as skipped in answers
+    setAnswers(prev => ({
+      ...prev,
+      [currentQuestion]: {
+        answer: "Skipped",
+        sentiment: "neutral",
+        status: 'skipped'
+      }
+    }));
+    
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      toast.info("Question skipped");
+    } else {
+      setIsCompleted(true);
+    }
   };
 
   const handleNext = () => {
@@ -33,30 +53,40 @@ const InterviewQuestions = ({ questions, onComplete }) => {
     }
   };
 
-  const handleSkipQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      toast.info("Question skipped");
-    } else {
-      setIsCompleted(true);
-    }
-  };
-
   const handleSubmit = () => {
-    // Modified to allow submission even with skipped questions
-    const answeredQuestions = Object.keys(answers).length;
+    // Process answers into final format
+    const processedAnswers = questions.reduce((acc, question) => {
+      const answer = answers[question] || {
+        answer: "Skipped",
+        sentiment: "neutral",
+        status: 'skipped'
+      };
+      acc[question] = answer;
+      return acc;
+    }, {});
     
+    // Calculate completion statistics
+    const totalQuestions = questions.length;
+    const answeredQuestions = Object.values(processedAnswers)
+      .filter(a => a.status === 'answered').length;
+    const completionRate = (answeredQuestions / totalQuestions) * 100;
+    
+    // Show appropriate toast message based on completion
     if (answeredQuestions === 0) {
-      toast.warning("Please answer at least one question before submitting");
+      toast.warning("You haven't answered any questions. Are you sure you want to submit?", {
+        action: {
+          label: "Yes, Submit",
+          onClick: () => onComplete(processedAnswers)
+        }
+      });
       return;
     }
     
-    if (answeredQuestions < questions.length) {
-      // Inform the user about skipped questions but allow submission
-      toast.info(`You've skipped ${questions.length - answeredQuestions} questions`);
+    if (completionRate < 100) {
+      toast.info(`Submitting with ${answeredQuestions} out of ${totalQuestions} questions answered`);
     }
     
-    onComplete(answers);
+    onComplete(processedAnswers);
   };
 
   const handleReRecord = () => {
@@ -72,7 +102,7 @@ const InterviewQuestions = ({ questions, onComplete }) => {
       <CardHeader>
         <CardTitle>Interview Simulation</CardTitle>
         <CardDescription>
-          Answer the questions as you would in a real interview
+          Answer the questions as you would in a real interview. You can skip questions if needed.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -84,7 +114,7 @@ const InterviewQuestions = ({ questions, onComplete }) => {
         <div className="p-5 rounded-lg bg-secondary/50">
           <h3 className="text-xl font-semibold mb-2">{currentQuestion}</h3>
           
-          {answers[currentQuestion] && (
+          {answers[currentQuestion] && answers[currentQuestion].status === 'answered' && (
             <div className="mt-4 p-3 bg-white/50 rounded-md">
               <p className="text-sm">{answers[currentQuestion].answer}</p>
             </div>
@@ -133,7 +163,9 @@ const InterviewQuestions = ({ questions, onComplete }) => {
           <div className="mt-6 text-center">
             <h3 className="font-medium text-xl mb-3">Interview Completed!</h3>
             <p className="text-muted-foreground mb-4">
-              You've answered {Object.keys(answers).length} out of {questions.length} questions. Submit your responses to get feedback.
+              You've answered {Object.values(answers).filter(a => a.status === 'answered').length} out of {questions.length} questions.
+              {Object.values(answers).filter(a => a.status === 'skipped').length > 0 && 
+                " Skipped questions will be noted in your feedback."}
             </p>
             <Button onClick={handleSubmit} size="lg">
               Get Feedback
