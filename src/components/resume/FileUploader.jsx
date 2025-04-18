@@ -2,9 +2,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
-const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError }) => {
+const FileUploader = ({ file, setFile, onUpload, resetError }) => {
   const [dragActive, setDragActive] = useState(false);
-  const [error, setError] = useState('');
   const inputRef = useRef(null);
 
   // Reset input value when file state changes
@@ -36,44 +35,23 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
 
   const handleChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      const newFile = e.target.files[0];
-      handleFile(newFile);
-      
-      // Always reset the input value to ensure the same file can be re-selected
-      // This is critical for allowing re-upload of the same file after an error
+      handleFile(e.target.files[0]);
+      // Reset input for consistent behavior
       e.target.value = '';
     }
   };
 
   const handleFile = (file) => {
-    setError('');
     resetError();
+    if (!file) return;
     
-    if (!file) {
-      return;
-    }
-    
-    // Validate file type
-    if (allowedFileTypes.includes(file.type)) {
-      console.log("File accepted:", file.name, file.type);
-      setFile(file);
-      toast.success('File uploaded successfully');
-    } else {
-      console.log("File rejected - invalid type:", file.type);
-      setFile(null);
-      setError('Please upload a PDF document');
-      toast.error('Invalid file format! Please upload your resume in PDF format');
-      
-      // Ensure input is reset after error
-      if (inputRef.current) {
-        inputRef.current.value = '';
-      }
-    }
+    console.log("File selected:", file.name);
+    setFile(file);
+    toast.success('File uploaded successfully');
   };
 
   const handleRemoveFile = () => {
     setFile(null);
-    setError('');
     resetError();
     if (inputRef.current) {
       inputRef.current.value = '';
@@ -87,9 +65,7 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
           ? "border-primary bg-primary/5" 
           : file 
             ? "border-green-500 bg-green-50" 
-            : error
-              ? "border-red-300 bg-red-50"
-              : "border-gray-300 hover:border-primary/50"
+            : "border-gray-300 hover:border-primary/50"
       }`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
@@ -100,7 +76,6 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
         ref={inputRef}
         className="hidden"
         type="file"
-        accept=".pdf"
         onChange={handleChange}
       />
 
@@ -112,7 +87,7 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
           </svg>
           <span className="text-sm font-medium">{file.name}</span>
           <p className="text-xs text-muted-foreground mt-1">
-            {file.type.includes('pdf') ? 'PDF Document' : 'Word Document'} • {Math.round(file.size / 1024)} KB
+            {Math.round(file.size / 1024)} KB
           </p>
           <button 
             className="text-xs text-red-500 mt-2"
@@ -139,14 +114,8 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
             browse files
           </button>
           <p className="text-xs text-muted-foreground mt-2">
-            Supports PDF
+            Upload your resume to get started
           </p>
-        </div>
-      )}
-      
-      {error && (
-        <div className="mt-4 text-sm text-red-500">
-          {error}
         </div>
       )}
     </div>
@@ -154,3 +123,4 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
 };
 
 export default FileUploader;
+

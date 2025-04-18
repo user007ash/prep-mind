@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
 import Button from '../ui/Button';
@@ -12,25 +11,17 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
   const [processing, setProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const allowedFileTypes = ['application/pdf'];
-
-  // Reset all states when a file upload error occurs
+  // Reset error state
   const handleFileError = (errorMessage) => {
     setFile(null);
     setError(errorMessage);
     setProcessing(false);
     setUploadProgress(0);
-    toast.error(errorMessage);
   };
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error('Please upload a resume file first');
-      return;
-    }
-    
-    if (!allowedFileTypes.includes(file.type)) {
-      handleFileError('Invalid file format! Please upload your resume in PDF format');
+      toast.error('Please select a file first');
       return;
     }
     
@@ -39,38 +30,29 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
       setProcessing(true);
       setError('');
       
-      // Progress simulation
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
-          const newProgress = prev + 10;
-          if (newProgress >= 90) {
+          if (prev >= 90) {
             clearInterval(progressInterval);
             return 90;
           }
-          return newProgress;
+          return prev + 10;
         });
       }, 300);
       
-      console.log("Starting resume parsing with file:", file);
+      console.log("Starting resume parsing...");
       const parsedData = await parseResume(file);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
       
       if (!parsedData || !parsedData.completenessScore) {
-        throw new Error('Resume parsing failed. Please try another file.');
+        throw new Error('Resume parsing failed. Please try again.');
       }
       
       console.log("Resume parsed successfully:", parsedData);
-      
-      if (parsedData.completenessScore < 75 && parsedData.missingElements && parsedData.missingElements.length > 0) {
-        const missingParts = parsedData.missingElements.join(', ');
-        toast.warning(`Your resume could be improved. Consider adding: ${missingParts}`);
-      } else {
-        toast.success('Resume analyzed successfully!');
-      }
-      
       onResumeProcessed(parsedData);
+      toast.success('Resume analyzed successfully!');
       
     } catch (error) {
       console.error("Error processing resume:", error);
@@ -95,7 +77,6 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
           file={file}
           setFile={setFile}
           onUpload={handleUpload}
-          allowedFileTypes={allowedFileTypes}
           resetError={() => setError('')}
         />
       </CardContent>

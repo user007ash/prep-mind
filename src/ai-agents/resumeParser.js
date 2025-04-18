@@ -1,4 +1,3 @@
-
 /**
  * AI Agent for resume parsing and ATS scoring
  */
@@ -19,24 +18,8 @@ const RESUME_INDICATORS = {
  * @returns {{ isValid: boolean, missingElements: string[] }}
  */
 const validateResumeContent = (content) => {
-  // More lenient validation - consider it a resume even with missing sections
-  // This way we provide feedback rather than blocking uploads
-  const missingElements = [];
-  let matchCount = 0;
-  
-  for (const [section, pattern] of Object.entries(RESUME_INDICATORS)) {
-    if (pattern.test(content)) {
-      matchCount++;
-    } else {
-      missingElements.push(section);
-    }
-  }
-  
-  // Consider it a valid resume if it has at least 2 out of 4 key sections
-  // More lenient than before to prevent false rejections
-  const isValid = matchCount >= 2;
-  
-  return { isValid, missingElements };
+  // Always consider content valid to restore original behavior
+  return { isValid: true, missingElements: [] };
 };
 
 /**
@@ -52,35 +35,18 @@ export const parseResume = async (resumeData) => {
     // If we have a file object, extract text content
     let content = resumeData;
     if (resumeData instanceof File) {
-      // Verify file type
-      if (resumeData.type !== 'application/pdf') {
-        console.log("Invalid file type:", resumeData.type);
-        throw new Error('Please upload your resume in PDF format');
-      }
-      
       try {
-        // Read file content
+        // Read file content without type validation
         content = await readFileContent(resumeData);
-        
-        // Validate content
-        const { isValid, missingElements } = validateResumeContent(content);
-        
-        if (!isValid) {
-          console.log("Resume validation failed, missing sections:", missingElements);
-          throw new Error(
-            `This doesn't look like a resume. Please ensure your file includes sections for: ${missingElements.join(', ')}`
-          );
-        }
-        
-        console.log("✅ Valid resume uploaded and parsed successfully");
+        console.log("✅ File content read successfully");
         
         // Generate a detailed analysis
         const analysis = generateDetailedAnalysis(content);
         
         return analysis;
       } catch (error) {
-        console.error("Error reading or validating resume:", error);
-        throw error; // Propagate the error to be handled by the caller
+        console.error("Error reading resume:", error);
+        throw error;
       }
     }
     
@@ -90,6 +56,6 @@ export const parseResume = async (resumeData) => {
     return analysis;
   } catch (error) {
     console.error("Error in AI resume parsing:", error);
-    throw error; // Propagate the error to be handled by the caller
+    throw error;
   }
 };
