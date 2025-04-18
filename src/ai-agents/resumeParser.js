@@ -1,3 +1,4 @@
+
 /**
  * AI Agent for resume parsing and ATS scoring
  */
@@ -18,8 +19,18 @@ const RESUME_INDICATORS = {
  * @returns {{ isValid: boolean, missingElements: string[] }}
  */
 const validateResumeContent = (content) => {
-  // Always consider content valid to restore original behavior
-  return { isValid: true, missingElements: [] };
+  const missingElements = [];
+  
+  for (const [section, pattern] of Object.entries(RESUME_INDICATORS)) {
+    if (!pattern.test(content)) {
+      missingElements.push(section);
+    }
+  }
+  
+  // Consider it valid if it has at least 3 out of 4 key sections
+  const isValid = missingElements.length <= 1;
+  
+  return { isValid, missingElements };
 };
 
 /**
@@ -35,18 +46,30 @@ export const parseResume = async (resumeData) => {
     // If we have a file object, extract text content
     let content = resumeData;
     if (resumeData instanceof File) {
+      // Verify file type
+      if (resumeData.type !== 'application/pdf') {
+        throw new Error('Please upload your resume in PDF format');
+      }
+      
       try {
-        // Read file content without type validation
+        // Read file content
         content = await readFileContent(resumeData);
-        console.log("✅ File content read successfully");
+        
+        // Validate content
+        const { isValid, missingElements } = validateResumeContent(content);
+        if (!isValid) {
+          throw new Error(
+            `This doesn't look like a resume. Please ensure your file includes sections for: ${missingElements.join(', ')}`
+          );
+        }
         
         // Generate a detailed analysis
         const analysis = generateDetailedAnalysis(content);
         
         return analysis;
       } catch (error) {
-        console.error("Error reading resume:", error);
-        throw error;
+        console.error("Error reading or validating resume:", error);
+        throw new Error(error.message || "Failed to read or validate resume");
       }
     }
     
@@ -56,6 +79,6 @@ export const parseResume = async (resumeData) => {
     return analysis;
   } catch (error) {
     console.error("Error in AI resume parsing:", error);
-    throw error;
+    throw error; // Propagate the error to be handled by the caller
   }
 };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
 import Button from '../ui/Button';
@@ -11,17 +12,25 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
   const [processing, setProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Reset error state
+  const allowedFileTypes = ['application/pdf'];
+
+  // Reset all states when a file upload error occurs
   const handleFileError = (errorMessage) => {
     setFile(null);
     setError(errorMessage);
     setProcessing(false);
     setUploadProgress(0);
+    toast.error(errorMessage);
   };
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error('Please select a file first');
+      toast.error('Please upload a resume file first');
+      return;
+    }
+    
+    if (!allowedFileTypes.includes(file.type)) {
+      handleFileError('Invalid file format! Please upload your resume in PDF format');
       return;
     }
     
@@ -32,28 +41,33 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
       
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
-          if (prev >= 90) {
+          const newProgress = prev + 10;
+          if (newProgress >= 90) {
             clearInterval(progressInterval);
             return 90;
           }
-          return prev + 10;
+          return newProgress;
         });
       }, 300);
       
-      console.log("Starting resume parsing...");
       const parsedData = await parseResume(file);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
       
       if (!parsedData || !parsedData.completenessScore) {
-        throw new Error('Resume parsing failed. Please try again.');
+        throw new Error('Resume parsing failed. Please try another file.');
       }
       
       console.log("Resume parsed successfully:", parsedData);
+      
+      if (parsedData.completenessScore < 75 && parsedData.missingElements && parsedData.missingElements.length > 0) {
+        const missingParts = parsedData.missingElements.join(', ');
+        toast.warning(`Your resume could be improved. Consider adding: ${missingParts}`);
+      }
+      
       onResumeProcessed(parsedData);
       toast.success('Resume analyzed successfully!');
-      
     } catch (error) {
       console.error("Error processing resume:", error);
       handleFileError(error.message || "Failed to process resume. Please try again.");
@@ -77,6 +91,7 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
           file={file}
           setFile={setFile}
           onUpload={handleUpload}
+          allowedFileTypes={allowedFileTypes}
           resetError={() => setError('')}
         />
       </CardContent>
