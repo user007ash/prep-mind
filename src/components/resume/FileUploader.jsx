@@ -36,11 +36,12 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
 
   const handleChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
-      // Reset input value to ensure the same file can be selected again after an error
-      if (!allowedFileTypes.includes(e.target.files[0].type)) {
-        e.target.value = '';
-      }
+      const newFile = e.target.files[0];
+      handleFile(newFile);
+      
+      // Always reset the input value to ensure the same file can be re-selected
+      // This is critical for allowing re-upload of the same file after an error
+      e.target.value = '';
     }
   };
 
@@ -48,13 +49,25 @@ const FileUploader = ({ file, setFile, onUpload, allowedFileTypes, resetError })
     setError('');
     resetError();
     
+    if (!file) {
+      return;
+    }
+    
+    // Validate file type
     if (allowedFileTypes.includes(file.type)) {
+      console.log("File accepted:", file.name, file.type);
       setFile(file);
       toast.success('File uploaded successfully');
     } else {
+      console.log("File rejected - invalid type:", file.type);
       setFile(null);
       setError('Please upload a PDF document');
-      toast.error('Please upload a PDF document');
+      toast.error('Invalid file format! Please upload your resume in PDF format');
+      
+      // Ensure input is reset after error
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
     }
   };
 

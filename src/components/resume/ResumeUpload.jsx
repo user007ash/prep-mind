@@ -39,6 +39,7 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
       setProcessing(true);
       setError('');
       
+      // Progress simulation
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           const newProgress = prev + 10;
@@ -50,6 +51,7 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
         });
       }, 300);
       
+      console.log("Starting resume parsing with file:", file);
       const parsedData = await parseResume(file);
       
       clearInterval(progressInterval);
@@ -64,10 +66,12 @@ const ResumeUpload = ({ onResumeProcessed, setLoading }) => {
       if (parsedData.completenessScore < 75 && parsedData.missingElements && parsedData.missingElements.length > 0) {
         const missingParts = parsedData.missingElements.join(', ');
         toast.warning(`Your resume could be improved. Consider adding: ${missingParts}`);
+      } else {
+        toast.success('Resume analyzed successfully!');
       }
       
       onResumeProcessed(parsedData);
-      toast.success('Resume analyzed successfully!');
+      
     } catch (error) {
       console.error("Error processing resume:", error);
       handleFileError(error.message || "Failed to process resume. Please try again.");
