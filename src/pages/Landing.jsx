@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Container from '../components/layout/Container';
@@ -62,7 +61,6 @@ const Landing = () => {
             </div>
             <div className="flex-1 relative">
               <div className="w-full h-[400px] bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg shadow-xl flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-500/10 to-violet-500/10 rounded-lg"></div>
                 <div className="relative w-3/4 aspect-square">
                   <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-primary/40 dark:text-primary/20">
                     <path fill="currentColor" d="M40,-51.2C51.8,-41.9,61.5,-29.4,65.6,-15C69.7,-0.6,68.3,15.7,61.3,29.3C54.4,42.9,42,53.8,27.4,60.8C12.9,67.8,-3.9,70.8,-20.3,67.3C-36.7,63.8,-52.8,53.7,-62.2,39.1C-71.6,24.5,-74.4,5.4,-70.5,-11.7C-66.6,-28.8,-56,-43.9,-42.5,-52.8C-29,-61.8,-12.8,-64.5,1.1,-65.8C14.9,-67.1,28.1,-60.5,40,-51.2Z" transform="translate(100 100)" />
