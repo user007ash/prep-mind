@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Container from '../components/layout/Container';
@@ -39,20 +40,7 @@ const Landing = () => {
             </div>
             <div className="flex-1 relative">
               <div className="w-full h-[400px] bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] rounded-lg bg-white/80 dark:bg-gray-800/80 shadow-xl p-6">
-                  <div className="space-y-4">
-                    <div className="w-full h-6 rounded bg-gray-200 dark:bg-gray-700"></div>
-                    <div className="w-2/3 h-6 rounded bg-gray-200 dark:bg-gray-700"></div>
-                    <div className="mt-8 space-y-3">
-                      <div className="w-full h-4 rounded bg-gray-100 dark:bg-gray-600"></div>
-                      <div className="w-full h-4 rounded bg-gray-100 dark:bg-gray-600"></div>
-                      <div className="w-3/4 h-4 rounded bg-gray-100 dark:bg-gray-600"></div>
-                    </div>
-                    <div className="pt-4 flex justify-end">
-                      <div className="w-24 h-8 rounded bg-primary/30"></div>
-                    </div>
-                  </div>
-                </div>
+                {/* The empty div has been removed from here */}
               </div>
             </div>
           </div>
