@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Disable esbuild minification to avoid vulnerability
+  // Use terser for minification (avoid esbuild vulnerability)
   build: {
     minify: 'terser',
   },
