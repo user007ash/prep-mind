@@ -1,11 +1,22 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import ResumeUpload from '../resume/ResumeUpload';
 import ATSScore from '../resume/ATSScore';
 import InterviewQuestions from '../interview/InterviewQuestions';
 import ProcessingResults from '../interview/ProcessingResults';
 import FeedbackSection from '../interview/FeedbackSection';
-import { Button } from '../ui';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.5 }
+  }
+};
 
 const Steps = ({ 
   step, 
@@ -24,69 +35,95 @@ const Steps = ({
   
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 animate-pulse-soft">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col items-center justify-center py-12"
+      >
         <div className="relative h-12 w-12 mb-4">
           <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
         </div>
         <p className="text-muted-foreground">Processing, please wait...</p>
-      </div>
+        {processingStep && totalProcessingSteps && (
+          <div className="w-full max-w-md mt-4">
+            <div className="flex justify-between text-xs mb-1">
+              <span>Step {processingStep} of {totalProcessingSteps}</span>
+              <span>{Math.round((processingStep / totalProcessingSteps) * 100)}%</span>
+            </div>
+            <Progress value={(processingStep / totalProcessingSteps) * 100} className="h-1.5" />
+          </div>
+        )}
+      </motion.div>
     );
   }
 
-  switch (step) {
-    case 'upload':
-      return (
+  return (
+    <motion.div
+      variants={fadeIn}
+      initial="hidden"
+      animate="visible"
+    >
+      {step === 'upload' && (
         <ResumeUpload 
           onResumeProcessed={handleResumeProcessed} 
           setLoading={() => {}} 
         />
-      );
-    case 'analysis':
-      return atsScore !== null ? (
+      )}
+      
+      {step === 'analysis' && atsScore !== null && (
         <ATSScore 
           score={atsScore} 
           onStartInterview={handleStartInterview} 
         />
-      ) : null;
-    case 'interview':
-      return (
+      )}
+      
+      {step === 'interview' && (
         <InterviewQuestions 
           questions={interviewQuestions} 
           onComplete={handleInterviewComplete} 
         />
-      );
-    case 'processing':
-      return (
+      )}
+      
+      {step === 'processing' && (
         <ProcessingResults 
           currentStep={processingStep}
           totalSteps={totalProcessingSteps}
           stepDescription={processingStepDescriptions[processingStep - 1]}
         />
-      );
-    case 'feedback':
-      return feedback ? (
+      )}
+      
+      {step === 'feedback' && feedback && (
         <div className="space-y-6">
           <FeedbackSection 
             feedback={feedback} 
             score={feedback.overallScore} 
           />
-          <div className="flex justify-center mt-8">
-            <Button
-              onClick={handleFinishReview}
-              className="bg-primary hover:bg-primary/90 text-white py-2.5 px-6 rounded-md transition-colors font-medium flex items-center space-x-2"
+          <motion.div 
+            className="flex justify-center mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <span>View All Results on Dashboard</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-            </Button>
-          </div>
+              <Button
+                onClick={handleFinishReview}
+                className="flex items-center space-x-2"
+              >
+                <span>View All Results on Dashboard</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
-      ) : null;
-    default:
-      return null;
-  }
+      )}
+    </motion.div>
+  );
 };
 
 export default Steps;
