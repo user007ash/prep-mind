@@ -1,56 +1,93 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import Button from '../components/ui/Button';
 import Navbar from '@/components/layout/Navbar';
 
 const Landing = () => {
+  const [scrolled, setScrolled] = useState(false);
+
+  // Add scroll effect for navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Smooth scroll to section
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950">
-      {/* Use the shared Navbar component */}
-      <Navbar />
+      {/* Enhanced Navbar with scroll effect */}
+      <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 dark:bg-gray-900/90 shadow-md backdrop-blur-sm' : 'bg-transparent'}`}>
+        <Navbar />
+      </div>
       
-      {/* Hero Section */}
-      <section className="pt-32 pb-20">
+      {/* Hero Section with improved layout and visual hierarchy */}
+      <section id="hero" className="pt-36 pb-20">
         <Container>
           <div className="flex flex-col lg:flex-row items-center gap-12">
-            <div className="flex-1 space-y-8">
-              <div className="inline-block px-3 py-1 mb-3 text-xs font-medium text-primary bg-primary/10 rounded-full">
+            <div className="flex-1 space-y-6">
+              <div className="inline-flex items-center px-3 py-1 mb-2 text-xs font-medium text-primary bg-primary/10 rounded-full">
+                <span className="mr-1.5 size-2 bg-primary rounded-full"></span>
                 AI-Powered Interview Preparation
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-                Your AI-powered interview coach
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-500 dark:from-blue-400 dark:to-violet-400">
+                Your AI-powered <br className="hidden md:block" />interview coach
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl">
                 Elevate your career with PrepMind - the all-in-one platform that analyzes your resume, simulates interviews, and provides personalized feedback to help you land your dream job.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <Link to="/index">
-                  <Button size="lg" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                     Start Your Prep
                   </Button>
                 </Link>
                 <Link to="/about">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
                     Learn More
                   </Button>
                 </Link>
               </div>
             </div>
             <div className="flex-1 relative">
-              <div className="w-full h-[400px] bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
-                {/* The empty div has been removed from here */}
+              <div className="w-full h-[400px] bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg shadow-xl flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-500/10 to-violet-500/10 rounded-lg"></div>
+                <div className="relative w-3/4 aspect-square">
+                  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-primary/40 dark:text-primary/20">
+                    <path fill="currentColor" d="M40,-51.2C51.8,-41.9,61.5,-29.4,65.6,-15C69.7,-0.6,68.3,15.7,61.3,29.3C54.4,42.9,42,53.8,27.4,60.8C12.9,67.8,-3.9,70.8,-20.3,67.3C-36.7,63.8,-52.8,53.7,-62.2,39.1C-71.6,24.5,-74.4,5.4,-70.5,-11.7C-66.6,-28.8,-56,-43.9,-42.5,-52.8C-29,-61.8,-12.8,-64.5,1.1,-65.8C14.9,-67.1,28.1,-60.5,40,-51.2Z" transform="translate(100 100)" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-4xl md:text-5xl font-bold text-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2a5 5 0 0 1 5 5v14a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5Z"/>
+                        <path d="M2 12h4"/>
+                        <path d="M18 12h4"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </Container>
       </section>
       
-      {/* Features Section */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-900">
+      {/* Features Section with improved cards and layout */}
+      <section id="features" className="py-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <Container>
           <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="block text-sm font-medium text-primary uppercase tracking-wider mb-2">Why Choose PrepMind</span>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Powerful Features to Boost Your Interview Prep</h2>
             <p className="text-lg text-muted-foreground">
               Our comprehensive suite of tools is designed to help you ace your next interview
@@ -91,7 +128,7 @@ const Landing = () => {
                   <line x1="15" y1="9" x2="15.01" y2="9"></line>
                 </svg>
               }
-              title="Sentiment Analysis & Behavioral Feedback"
+              title="Sentiment Analysis & Feedback"
               description="Receive insights on your tone, confidence, and overall communication style"
             />
             
@@ -102,28 +139,31 @@ const Landing = () => {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
               }
-              title="Comprehensive Performance Reports"
+              title="Comprehensive Reports"
               description="Get detailed feedback on your answers with suggestions for improvement"
             />
           </div>
         </Container>
       </section>
       
-      {/* CTA Section */}
-      <section className="py-20">
+      {/* CTA Section with improved layout and visual appeal */}
+      <section id="cta" className="py-20">
         <Container>
-          <div className="bg-primary/10 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="bg-gradient-to-r from-blue-600/10 to-violet-500/10 dark:from-blue-600/20 dark:to-violet-500/20 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-lg border border-primary/10">
             <div className="max-w-2xl">
-              <h2 className="text-3xl font-bold mb-4">Ready to ace your next interview?</h2>
+              <span className="block text-sm font-medium text-primary uppercase tracking-wider mb-2">Ready to get started?</span>
+              <h2 className="text-3xl font-bold mb-4">Ace your next interview</h2>
               <p className="text-lg text-muted-foreground mb-6">
                 Start practicing with our AI-powered interview coach today and build your confidence for the real thing.
               </p>
               <Link to="/index">
-                <Button size="lg">Get Started Now</Button>
+                <Button size="lg" className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+                  Get Started Now
+                </Button>
               </Link>
             </div>
-            <div className="relative w-full md:w-1/3 aspect-square rounded-lg bg-gradient-to-br from-primary/30 to-primary/5 flex items-center justify-center">
-              <div className="absolute inset-4 rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center">
+            <div className="relative w-full md:w-1/3 aspect-square rounded-lg bg-gradient-to-br from-primary/10 to-transparent flex items-center justify-center">
+              <div className="absolute inset-4 rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center animate-pulse">
                 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
                   <path d="M12 20h9"></path>
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
@@ -134,12 +174,12 @@ const Landing = () => {
         </Container>
       </section>
       
-      {/* Footer */}
-      <footer className="py-6 border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
+      {/* Footer with improved layout */}
+      <footer className="py-8 border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
         <Container>
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   viewBox="0 0 24 24" 
@@ -148,14 +188,19 @@ const Landing = () => {
                   strokeWidth="2" 
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
-                  className="w-3 h-3 text-primary"
+                  className="w-4 h-4 text-primary"
                 >
                   <path d="M12 2a5 5 0 0 1 5 5v14a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5Z"/>
                   <path d="M2 12h4"/>
                   <path d="M18 12h4"/>
                 </svg>
               </div>
-              <span className="text-sm font-medium">PrepMind</span>
+              <span className="text-lg font-medium">PrepMind</span>
+            </div>
+            <div className="flex items-center gap-6 mb-4 md:mb-0">
+              <a href="#" onClick={() => scrollToSection('hero')} className="text-sm text-muted-foreground hover:text-primary transition-colors">Home</a>
+              <a href="#" onClick={() => scrollToSection('features')} className="text-sm text-muted-foreground hover:text-primary transition-colors">Features</a>
+              <Link to="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">About Us</Link>
             </div>
             <p className="text-xs text-muted-foreground">
               © {new Date().getFullYear()} PrepMind. All rights reserved.
@@ -167,13 +212,14 @@ const Landing = () => {
   );
 };
 
+// Enhanced Feature Card component with improved styling
 const FeatureCard = ({ icon, title, description }) => {
   return (
-    <div className="p-6 rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 text-primary">
+    <div className="p-6 rounded-lg bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:translate-y-[-4px] group">
+      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 text-primary group-hover:bg-primary/20 transition-all">
         {icon}
       </div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">{title}</h3>
       <p className="text-muted-foreground">{description}</p>
     </div>
   );
