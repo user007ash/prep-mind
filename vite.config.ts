@@ -19,8 +19,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Use terser for minification (avoid esbuild vulnerability)
+  // Use terser for minification (explicitly configured)
   build: {
     minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: mode === 'production',
+        drop_debugger: mode === 'production'
+      }
+    }
   },
 }));
