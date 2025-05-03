@@ -13,3 +13,5 @@ export { Toaster } from './toaster';
 // Re-export components with non-shadcn naming conventions
 export { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from './Card';
 export { default as Spinner } from './Spinner';
+export { Button as ButtonJSX } from './Button';
+export { Progress as ProgressJSX } from './Progress';

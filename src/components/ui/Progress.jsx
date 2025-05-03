@@ -19,4 +19,4 @@ const Progress = ({ value = 0, className, ...props }) => {
   );
 };
 
-export default Progress;
+export { Progress };
