@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
-import Button from '../ui/Button';
+import { Button } from '../ui/Button';
 import VoiceRecorder from './VoiceRecorder';
 import QuestionProgress from './QuestionProgress';
 import { toast } from 'sonner';
@@ -43,12 +43,17 @@ const InterviewQuestions = ({ questions, onComplete }) => {
   };
 
   const handleSubmit = () => {
-    // Make sure we have answers for all questions
-    const allQuestionsAnswered = questions.every(q => answers[q]);
+    // Modified to allow submission even with skipped questions
+    const answeredQuestions = Object.keys(answers).length;
     
-    if (!allQuestionsAnswered) {
-      toast.warning("Please answer all questions before submitting");
+    if (answeredQuestions === 0) {
+      toast.warning("Please answer at least one question before submitting");
       return;
+    }
+    
+    if (answeredQuestions < questions.length) {
+      // Inform the user about skipped questions but allow submission
+      toast.info(`You've skipped ${questions.length - answeredQuestions} questions`);
     }
     
     onComplete(answers);
@@ -128,7 +133,7 @@ const InterviewQuestions = ({ questions, onComplete }) => {
           <div className="mt-6 text-center">
             <h3 className="font-medium text-xl mb-3">Interview Completed!</h3>
             <p className="text-muted-foreground mb-4">
-              You've answered all questions. Submit your responses to get feedback.
+              You've answered {Object.keys(answers).length} out of {questions.length} questions. Submit your responses to get feedback.
             </p>
             <Button onClick={handleSubmit} size="lg">
               Get Feedback

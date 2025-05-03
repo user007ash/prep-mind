@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../ui/Card';
-import Progress from '../ui/Progress';
+import { Progress } from '../ui/Progress';
 
 const ATSScore = ({ score, onStartInterview }) => {
   return (
