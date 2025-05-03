@@ -225,4 +225,3 @@ const FeatureCard = ({ icon, title, description }) => {
 };
 
 export default Landing;
-
