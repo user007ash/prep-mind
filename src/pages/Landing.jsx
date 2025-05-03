@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Container from '../components/layout/Container';
-import Button from '../components/ui/Button';
+import { Button } from '../components/ui/Button';
 import Navbar from '@/components/layout/Navbar';
 
 const Landing = () => {
