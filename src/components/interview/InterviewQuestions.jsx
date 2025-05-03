@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '../ui/Card';
-import Button from '../ui/Button';
+import { Button } from '../ui/Button';
 import VoiceRecorder from './VoiceRecorder';
 import QuestionProgress from './QuestionProgress';
 import { toast } from 'sonner';
