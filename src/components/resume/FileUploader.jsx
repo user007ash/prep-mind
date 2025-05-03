@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-const FileUploader = ({ file, setFile, onUpload }) => {
+const FileUploader = ({ file, setFile, onUpload, allowedFileTypes }) => {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
@@ -35,9 +35,14 @@ const FileUploader = ({ file, setFile, onUpload }) => {
 
   const handleFile = (file) => {
     setError('');
-    setFile(file);
-    console.log("File selected:", file.name, file.type);
-    toast.success('File uploaded successfully');
+    if (allowedFileTypes.includes(file.type)) {
+      setFile(file);
+      toast.success('File uploaded successfully');
+    } else {
+      setFile(null);
+      setError('Please upload a PDF or Word document');
+      toast.error('Please upload a PDF or Word document');
+    }
   };
 
   return (
@@ -60,6 +65,7 @@ const FileUploader = ({ file, setFile, onUpload }) => {
         ref={inputRef}
         className="hidden"
         type="file"
+        accept=".pdf,.doc,.docx"
         onChange={handleChange}
       />
 
@@ -71,7 +77,7 @@ const FileUploader = ({ file, setFile, onUpload }) => {
           </svg>
           <span className="text-sm font-medium">{file.name}</span>
           <p className="text-xs text-muted-foreground mt-1">
-            {file.type.includes('pdf') ? 'PDF Document' : file.type.includes('word') ? 'Word Document' : 'Document'} • {Math.round(file.size / 1024)} KB
+            {file.type.includes('pdf') ? 'PDF Document' : 'Word Document'} • {Math.round(file.size / 1024)} KB
           </p>
           <button 
             className="text-xs text-red-500 mt-2"
@@ -98,7 +104,7 @@ const FileUploader = ({ file, setFile, onUpload }) => {
             browse files
           </button>
           <p className="text-xs text-muted-foreground mt-2">
-            Upload your resume file
+            Supports PDF, DOC, DOCX
           </p>
         </div>
       )}

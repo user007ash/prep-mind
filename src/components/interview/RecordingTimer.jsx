@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Progress } from '../ui/Progress';
+import Progress from '../ui/Progress';
 
 const RecordingTimer = ({ recordingTime, maxRecordingTime }) => {
   const formatTime = (seconds) => {
